@@ -32,7 +32,6 @@ export default function LoginPage() {
       return;
     }
 
-    // Verificar se já tem plano ativo
     const { data: { user } } = await supabase.auth.getUser();
 
     if (user) {
@@ -49,14 +48,14 @@ export default function LoginPage() {
     }
 
     router.push('/dashboard');
-}
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Entrar</CardTitle>
+          <h1 className="text-xl font-bold text-blue-600">Agente de Crédito</h1>
+          <CardTitle className="text-2xl font-bold mt-2">Entrar</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
