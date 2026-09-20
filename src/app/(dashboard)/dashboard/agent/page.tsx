@@ -2,12 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Check } from 'lucide-react';
+import { Loader2, Check, Bot } from 'lucide-react';
 
 export default function AgentPage() {
   const [nomeAgente, setNomeAgente] = useState('');
@@ -67,105 +62,108 @@ export default function AgentPage() {
     setLoading(false);
   }
 
+  const inputClass = "w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200";
+  const labelClass = "block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5";
+
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">
-        Personalizar Agente
-      </h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Personalizar Agente</h1>
+        <p className="text-sm text-gray-400 mt-1">Defina como seu agente se comporta</p>
+      </div>
 
-      <Card className="max-w-lg">
-        <CardHeader>
-          <CardTitle>Configurações do agente</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSave} className="space-y-4">
-            <div>
-              <Label htmlFor="nomeAgente">Nome do agente</Label>
-              <Input
-                id="nomeAgente"
-                value={nomeAgente}
-                onChange={(e) => setNomeAgente(e.target.value)}
-                placeholder="Ex: Maria, Carlos, Assistente"
-                maxLength={50}
-              />
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm max-w-lg">
+        <div className="flex items-center gap-3 p-5 border-b border-gray-100">
+          <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
+            <Bot size={18} className="text-indigo-500" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Configurações do agente</p>
+            <p className="text-xs text-gray-400">Personalize nome, tom e regras</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSave} className="p-5 space-y-5">
+          <div>
+            <label className={labelClass}>Nome do agente</label>
+            <input
+              value={nomeAgente}
+              onChange={(e) => setNomeAgente(e.target.value)}
+              placeholder="Ex: Maria, Carlos, Assistente"
+              maxLength={50}
+              className={inputClass}
+            />
+          </div>
+
+          <div>
+            <label className={labelClass}>Nome da empresa</label>
+            <input
+              value={nomeEmpresa}
+              onChange={(e) => setNomeEmpresa(e.target.value)}
+              placeholder="Ex: Loja do João, Banco BB"
+              maxLength={100}
+              className={inputClass}
+            />
+          </div>
+
+          <div>
+            <label className={labelClass}>Tom de conversa</label>
+            <div className="flex gap-3 mt-1">
+              {['informal', 'formal'].map((opt) => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => setTom(opt)}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium border-2 transition-all duration-200 ${
+                    tom === opt
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                  }`}
+                >
+                  {opt === 'informal' ? '😊 Informal' : '👔 Formal'}
+                </button>
+              ))}
             </div>
+          </div>
 
-            <div>
-              <Label htmlFor="nomeEmpresa">Nome da empresa</Label>
-              <Input
-                id="nomeEmpresa"
-                value={nomeEmpresa}
-                onChange={(e) => setNomeEmpresa(e.target.value)}
-                placeholder="Ex: Loja do João, Banco BB"
-                maxLength={100}
-              />
-            </div>
+          <div>
+            <label className={labelClass}>Regras extras (opcional)</label>
+            <textarea
+              value={regras}
+              onChange={(e) => setRegras(e.target.value)}
+              placeholder="Ex: Não falar de concorrentes, sempre oferecer garantia estendida..."
+              maxLength={500}
+              rows={3}
+              className={`${inputClass} resize-none`}
+            />
+            <p className="text-[11px] text-gray-300 mt-1 text-right">{regras.length}/500</p>
+          </div>
 
-            <div>
-              <Label>Tom de conversa</Label>
-              <div className="flex gap-4 mt-2">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="tom"
-                    value="informal"
-                    checked={tom === 'informal'}
-                    onChange={(e) => setTom(e.target.value)}
-                    className="accent-blue-600"
-                  />
-                  <span className="text-sm">Informal</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="tom"
-                    value="formal"
-                    checked={tom === 'formal'}
-                    onChange={(e) => setTom(e.target.value)}
-                    className="accent-blue-600"
-                  />
-                  <span className="text-sm">Formal</span>
-                </label>
-              </div>
-            </div>
+          <div>
+            <label className={labelClass}>Saudação personalizada (opcional)</label>
+            <input
+              value={saudacao}
+              onChange={(e) => setSaudacao(e.target.value)}
+              placeholder="Ex: Bem-vindo à nossa loja!"
+              maxLength={200}
+              className={inputClass}
+            />
+          </div>
 
-            <div>
-              <Label htmlFor="regras">Regras extras (opcional)</Label>
-              <Textarea
-                id="regras"
-                value={regras}
-                onChange={(e) => setRegras(e.target.value)}
-                placeholder="Ex: Não falar de concorrentes, sempre oferecer garantia estendida..."
-                maxLength={500}
-                rows={3}
-              />
-              <p className="text-xs text-gray-400 mt-1">
-                {regras.length}/500 caracteres
-              </p>
-            </div>
-
-            <div>
-              <Label htmlFor="saudacao">Saudação personalizada (opcional)</Label>
-              <Input
-                id="saudacao"
-                value={saudacao}
-                onChange={(e) => setSaudacao(e.target.value)}
-                placeholder="Ex: Bem-vindo à nossa loja!"
-                maxLength={200}
-              />
-            </div>
-
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (
-                <Loader2 className="animate-spin mr-2" size={16} />
-              ) : saved ? (
-                <Check className="mr-2" size={16} />
-              ) : null}
-              {saved ? 'Salvo!' : loading ? 'Salvando...' : 'Salvar alterações'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg shadow-blue-500/20 disabled:opacity-50"
+          >
+            {loading ? (
+              <Loader2 className="animate-spin" size={16} />
+            ) : saved ? (
+              <Check size={16} />
+            ) : null}
+            {saved ? 'Salvo com sucesso!' : loading ? 'Salvando...' : 'Salvar alterações'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

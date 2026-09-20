@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Wifi, WifiOff, RefreshCw, Loader2 } from 'lucide-react';
+import { Wifi, WifiOff, Loader2, QrCode, Unplug, RefreshCw } from 'lucide-react';
 
 export default function WhatsAppPage() {
   const [status, setStatus] = useState<string>('loading');
@@ -59,7 +57,7 @@ export default function WhatsAppPage() {
         setStatus('qr_generated');
         setInstanceName(data.instanceName);
       }
-    } catch (err) {
+    } catch {
       alert('Erro ao conectar. Tente novamente.');
     }
     setLoading(false);
@@ -84,8 +82,8 @@ export default function WhatsAppPage() {
             .eq('user_id', user.id);
         }
       }
-    } catch (err) {
-      // Silencioso — tenta de novo no próximo intervalo
+    } catch {
+      // retry
     }
   }
 
@@ -105,95 +103,94 @@ export default function WhatsAppPage() {
       setStatus('disconnected');
       setQrCode(null);
       setInstanceName(null);
-    } catch (err) {
+    } catch {
       alert('Erro ao desconectar.');
     }
     setLoading(false);
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">WhatsApp</h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">WhatsApp</h1>
+        <p className="text-sm text-gray-400 mt-1">Gerencie a conexão do seu agente</p>
+      </div>
 
-      <Card className="max-w-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            {status === 'connected' ? (
-              <>
-                <Wifi className="text-green-500" size={20} />
-                Conectado
-              </>
-            ) : (
-              <>
-                <WifiOff className="text-red-500" size={20} />
-                Desconectado
-              </>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm max-w-lg">
+        {/* Status header */}
+        <div className="flex items-center gap-3 p-5 border-b border-gray-100">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+            status === 'connected' ? 'bg-emerald-50' : 'bg-red-50'
+          }`}>
+            {status === 'connected'
+              ? <Wifi size={18} className="text-emerald-500" />
+              : <WifiOff size={18} className="text-red-400" />
+            }
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900">
+              {status === 'connected' ? 'Conectado' : status === 'loading' ? 'Carregando...' : 'Desconectado'}
+            </p>
+            <p className="text-xs text-gray-400">
+              {status === 'connected' ? 'Seu agente está ativo e respondendo' : 'Conecte para ativar o agente'}
+            </p>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-5 space-y-4">
+          {status === 'loading' && (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="animate-spin text-gray-300" size={24} />
+            </div>
+          )}
+
           {status === 'connected' && (
-            <>
-              <p className="text-sm text-gray-600">
-                Seu WhatsApp está conectado e o agente está ativo.
-              </p>
-              <Button
-                variant="destructive"
-                onClick={handleDisconnect}
-                disabled={loading}
-              >
-                {loading ? (
-                  <Loader2 className="animate-spin mr-2" size={16} />
-                ) : null}
-                Desconectar
-              </Button>
-            </>
+            <button
+              onClick={handleDisconnect}
+              disabled={loading}
+              className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-red-50 text-red-600 text-sm font-semibold hover:bg-red-100 transition-colors duration-200 disabled:opacity-50"
+            >
+              {loading ? <Loader2 className="animate-spin" size={16} /> : <Unplug size={16} />}
+              Desconectar
+            </button>
           )}
 
           {status === 'disconnected' && (
-            <>
-              <p className="text-sm text-gray-600">
-                Conecte seu WhatsApp para ativar o agente.
-              </p>
-              <Button onClick={handleConnect} disabled={loading}>
-                {loading ? (
-                  <Loader2 className="animate-spin mr-2" size={16} />
-                ) : null}
-                Gerar QR Code
-              </Button>
-            </>
+            <button
+              onClick={handleConnect}
+              disabled={loading}
+              className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg shadow-blue-500/20 disabled:opacity-50"
+            >
+              {loading ? <Loader2 className="animate-spin" size={16} /> : <QrCode size={16} />}
+              Gerar QR Code
+            </button>
           )}
 
           {(status === 'qr_generated' || status === 'connecting') && qrCode && (
             <>
-              <div className="bg-white p-4 rounded-lg border flex items-center justify-center">
+              <div className="bg-gray-50 p-6 rounded-xl flex items-center justify-center">
                 <img
                   src={qrCode}
                   alt="QR Code WhatsApp"
-                  className="w-64 h-64"
+                  className="w-56 h-56 rounded-lg"
                 />
               </div>
-              <div className="text-sm text-gray-600 space-y-1">
-                <p>1. Abra o WhatsApp no celular</p>
-                <p>2. Vá em Configurações → Aparelhos conectados</p>
-                <p>3. Toque em "Conectar um aparelho"</p>
-                <p>4. Escaneie o QR code acima</p>
+              <div className="bg-blue-50 rounded-xl p-4 space-y-1.5">
+                <p className="text-xs font-semibold text-blue-700">Como escanear:</p>
+                <p className="text-xs text-blue-600">1. Abra o WhatsApp no celular</p>
+                <p className="text-xs text-blue-600">2. Vá em Configurações → Aparelhos conectados</p>
+                <p className="text-xs text-blue-600">3. Toque em "Conectar um aparelho"</p>
+                <p className="text-xs text-blue-600">4. Escaneie o QR code acima</p>
               </div>
-              <div className="flex items-center gap-2 text-sm text-blue-600">
-                <RefreshCw size={14} className="animate-spin" />
+              <div className="flex items-center justify-center gap-2 text-xs text-blue-500 font-medium">
+                <RefreshCw size={12} className="animate-spin" />
                 Aguardando conexão...
               </div>
             </>
           )}
-
-          {status === 'loading' && (
-            <div className="flex items-center gap-2">
-              <Loader2 className="animate-spin" size={16} />
-              <span className="text-sm text-gray-500">Carregando...</span>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

@@ -24,16 +24,17 @@ export default async function DashboardLayout({
     redirect('/login');
   }
 
-  // Se não pagou ainda, redireciona pra escolha de plano
   if (tenant.plano_status === 'pending' || tenant.plano === 'pending') {
     redirect('/choose-plan');
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50/50">
       <Sidebar tenant={tenant} />
-      <main className="flex-1 p-8">
-        {children}
+      <main className="flex-1 p-6 lg:p-10 overflow-auto">
+        <div className="max-w-6xl mx-auto">
+          {children}
+        </div>
       </main>
     </div>
   );

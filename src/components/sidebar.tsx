@@ -13,6 +13,7 @@ import {
   LogOut,
   ShieldCheck,
   Database,
+  Sparkles,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -44,15 +45,24 @@ export function Sidebar({ tenant }: SidebarProps) {
   }
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
-      <div className="p-6 border-b border-gray-200">
-        <h1 className="text-xl font-bold text-gray-900">
-          {tenant.nome_empresa || 'Agente de Crédito'}
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">{tenant.nome}</p>
+    <aside className="w-72 bg-white/80 backdrop-blur-xl border-r border-gray-200/60 flex flex-col">
+      {/* Logo */}
+      <div className="px-6 py-5 border-b border-gray-200/60">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+            <Sparkles size={18} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-sm font-bold text-gray-900 leading-tight">
+              {tenant.nome_empresa || 'Agente de Crédito'}
+            </h1>
+            <p className="text-xs text-gray-400 leading-tight mt-0.5">{tenant.nome}</p>
+          </div>
+        </div>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1">
+      {/* Menu */}
+      <nav className="flex-1 px-3 py-4 space-y-0.5">
         {menuItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -61,39 +71,40 @@ export function Sidebar({ tenant }: SidebarProps) {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ${
                 isActive
-                  ? 'bg-blue-50 text-blue-700 font-medium'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 shadow-sm shadow-blue-500/5'
+                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
               }`}
             >
-              <Icon size={18} />
+              <Icon size={18} strokeWidth={isActive ? 2.2 : 1.8} />
               {item.label}
             </Link>
           );
         })}
 
-        {/* Menu Admin — só aparece pra admin */}
-                {tenant.is_admin && (
+        {/* Admin */}
+        {tenant.is_admin && (
           <>
-            <div className="border-t border-gray-200 my-3" />
+            <div className="border-t border-gray-100 my-3 mx-3" />
+            <p className="px-3 text-[10px] font-semibold text-gray-300 uppercase tracking-widest mb-1">Admin</p>
             <Link
               href="/dashboard/admin"
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ${
                 pathname === '/dashboard/admin'
-                  ? 'bg-red-50 text-red-700 font-medium'
-                  : 'text-red-600 hover:bg-red-50'
+                  ? 'bg-red-50 text-red-600'
+                  : 'text-red-400 hover:bg-red-50 hover:text-red-600'
               }`}
             >
               <ShieldCheck size={18} />
-              Admin
+              Painel Admin
             </Link>
             <Link
               href="/dashboard/admin/knowledge"
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ${
                 pathname === '/dashboard/admin/knowledge'
-                  ? 'bg-red-50 text-red-700 font-medium'
-                  : 'text-red-600 hover:bg-red-50'
+                  ? 'bg-red-50 text-red-600'
+                  : 'text-red-400 hover:bg-red-50 hover:text-red-600'
               }`}
             >
               <Database size={18} />
@@ -103,13 +114,14 @@ export function Sidebar({ tenant }: SidebarProps) {
         )}
       </nav>
 
-      <div className="p-4 border-t border-gray-200">
+      {/* Logout */}
+      <div className="px-3 py-4 border-t border-gray-200/60">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 w-full transition-colors"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-gray-400 hover:bg-red-50 hover:text-red-500 w-full transition-all duration-200"
         >
           <LogOut size={18} />
-          Sair
+          Sair da conta
         </button>
       </div>
     </aside>

@@ -2,24 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Check, Loader2, CreditCard, QrCode } from 'lucide-react';
+import { Check, Loader2, CreditCard, Sparkles } from 'lucide-react';
 
-interface Plano {
-  id: string;
-  nome: string;
-  mensagens_mes: number;
-  preco_centavos: number;
-  ativo: boolean;
-}
+const plansData = [
+  { id: 'starter', name: 'Starter', price: 97, messages: '500', limit: 500 },
+  { id: 'pro', name: 'Pro', price: 197, messages: '2.000', limit: 2000, popular: true },
+  { id: 'business', name: 'Business', price: 397, messages: '5.000', limit: 5000 },
+  { id: 'enterprise', name: 'Enterprise', price: 797, messages: 'Ilimitadas', limit: 999999 },
+];
 
 export default function PlanPage() {
-  const [planos, setPlanos] = useState<Plano[]>([]);
-  const [planoAtual, setPlanoAtual] = useState<string>('');
+  const [planoAtual, setPlanoAtual] = useState('');
   const [loading, setLoading] = useState<string | null>(null);
-  const [selectedPayment, setSelectedPayment] = useState<'PIX' | 'CREDIT_CARD'>('PIX');
   const supabase = createClient();
 
   useEffect(() => {
@@ -36,157 +30,109 @@ export default function PlanPage() {
       .eq('user_id', user.id)
       .single();
 
-    if (tenant) {
-      setPlanoAtual(tenant.plano);
-    }
-
-    const { data: planosData } = await supabase
-      .from('planos')
-      .select('*')
-      .eq('ativo', true)
-      .order('preco_centavos', { ascending: true });
-
-    if (planosData) {
-      setPlanos(planosData);
-    }
+    if (tenant) setPlanoAtual(tenant.plano);
   }
 
-  async function handleSelectPlan(plano: Plano) {
-    setLoading(plano.id);
+  async function handleSelectPlan(planId: string) {
+    setLoading(planId);
 
     try {
-      const res = await fetch('/api/plan/checkout', {
+      const res = await fetch('/api/payments/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          plano_id: plano.id,
-          billing_type: selectedPayment,
-        }),
+        body: JSON.stringify({ plano: planId }),
       });
 
       const data = await res.json();
-      console.log('Resposta checkout:', data);
 
-      if (data.checkout_url) {
-        window.location.href = data.checkout_url;
-      } else if (data.ok) {
-        alert('Cobrança criada! Verifique seu email para pagamento.');
-        setPlanoAtual(plano.nome.toLowerCase());
-      } else {
-        alert(data.error || 'Erro ao processar. Tente novamente.');
+      if (data.invoiceUrl) {
+        window.location.href = data.invoiceUrl;
+        return;
       }
-    } catch (err) {
-      console.error('Erro:', err);
+
+      alert(data.error || 'Erro ao processar. Tente novamente.');
+    } catch {
       alert('Erro ao processar. Tente novamente.');
     }
 
     setLoading(null);
   }
 
-  function formatPrice(centavos: number) {
-    return (centavos / 100).toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    });
-  }
-
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Escolha seu plano</h1>
-
-      {/* Seletor de forma de pagamento */}
-      <div className="flex gap-3 mb-6">
-        <button
-          onClick={() => setSelectedPayment('PIX')}
-          className={`flex items-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
-            selectedPayment === 'PIX'
-              ? 'border-green-500 bg-green-50 text-green-700'
-              : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
-          }`}
-        >
-          <QrCode size={20} />
-          <div className="text-left">
-            <p className="font-semibold text-sm">PIX</p>
-            <p className="text-xs opacity-70">Aprovação instantânea</p>
-          </div>
-        </button>
-
-        <button
-          onClick={() => setSelectedPayment('CREDIT_CARD')}
-          className={`flex items-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
-            selectedPayment === 'CREDIT_CARD'
-              ? 'border-blue-500 bg-blue-50 text-blue-700'
-              : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
-          }`}
-        >
-          <CreditCard size={20} />
-          <div className="text-left">
-            <p className="font-semibold text-sm">Cartão de Crédito</p>
-            <p className="text-xs opacity-70">Recorrência automática</p>
-          </div>
-        </button>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Escolha seu plano</h1>
+        <p className="text-sm text-gray-400 mt-1">Upgrade ou downgrade a qualquer momento</p>
       </div>
 
-      {/* Cards dos planos */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {planos.map((plano) => {
-          const isAtual = planoAtual === plano.nome.toLowerCase();
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        {plansData.map((plan) => {
+          const isAtual = planoAtual === plan.id;
 
           return (
-            <Card
-              key={plano.id}
-              className={`relative overflow-visible ${
-                isAtual ? 'border-blue-500 border-2' : ''
+            <div
+              key={plan.id}
+              className={`relative bg-white rounded-2xl border-2 p-6 shadow-sm hover:shadow-md transition-all duration-300 ${
+                plan.popular
+                  ? 'border-blue-500 shadow-blue-100'
+                  : isAtual
+                    ? 'border-emerald-500'
+                    : 'border-gray-100 hover:border-gray-200'
               }`}
             >
-              {isAtual && (
-                <Badge className="absolute -top-3 left-4 bg-blue-600">
-                  Plano atual
-                </Badge>
-              )}
-              <CardHeader className="text-center">
-                <CardTitle>{plano.nome}</CardTitle>
-              </CardHeader>
-              <CardContent className="text-center space-y-4">
-                <p className="text-3xl font-bold">
-                  {formatPrice(plano.preco_centavos)}
-                  <span className="text-sm font-normal text-gray-500">/mês</span>
-                </p>
-
-                <div className="space-y-2 text-sm text-gray-600">
-                  <div className="flex items-center gap-2 justify-center">
-                    <Check size={14} className="text-green-500" />
-                    {plano.mensagens_mes === 99999
-                      ? 'Mensagens ilimitadas'
-                      : `${plano.mensagens_mes.toLocaleString('pt-BR')} mensagens/mês`}
-                  </div>
-                  <div className="flex items-center gap-2 justify-center">
-                    <Check size={14} className="text-green-500" />
-                    Agente personalizado
-                  </div>
-                  <div className="flex items-center gap-2 justify-center">
-                    <Check size={14} className="text-green-500" />
-                    WhatsApp conectado 24h
-                  </div>
-                  <div className="flex items-center gap-2 justify-center">
-                    <Check size={14} className="text-green-500" />
-                    Suporte por WhatsApp
-                  </div>
+              {plan.popular && (
+                <div className="absolute -top-3 left-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-lg shadow-blue-500/20">
+                  Mais popular
                 </div>
+              )}
 
-                <Button
-                  className="w-full"
-                  variant={isAtual ? 'outline' : 'default'}
-                  disabled={isAtual || loading === plano.id}
-                  onClick={() => handleSelectPlan(plano)}
-                >
-                  {loading === plano.id ? (
-                    <Loader2 className="animate-spin mr-2" size={16} />
-                  ) : null}
-                  {isAtual ? 'Plano atual' : 'Assinar'}
-                </Button>
-              </CardContent>
-            </Card>
+              {isAtual && !plan.popular && (
+                <div className="absolute -top-3 left-4 bg-emerald-500 text-white text-[11px] font-bold px-3 py-1 rounded-full">
+                  Plano atual
+                </div>
+              )}
+
+              <div className="mb-4 mt-1">
+                <h3 className="text-lg font-bold text-gray-900">{plan.name}</h3>
+                <p className="text-3xl font-bold text-gray-900 mt-2">
+                  R$ {plan.price}
+                  <span className="text-sm font-normal text-gray-400">/mês</span>
+                </p>
+              </div>
+
+              <div className="space-y-2.5 mb-6">
+                {[
+                  `${plan.messages} mensagens/mês`,
+                  'Agente personalizado',
+                  'WhatsApp 24h',
+                  'Suporte por WhatsApp',
+                ].map((feature) => (
+                  <div key={feature} className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-emerald-50 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Check size={10} className="text-emerald-500" />
+                    </div>
+                    <span className="text-xs text-gray-500">{feature}</span>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={() => handleSelectPlan(plan.id)}
+                disabled={isAtual || loading === plan.id}
+                className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                  isAtual
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : plan.popular
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/20'
+                      : 'bg-gray-900 text-white hover:bg-gray-800'
+                }`}
+              >
+                {loading === plan.id ? (
+                  <Loader2 className="animate-spin" size={16} />
+                ) : null}
+                {isAtual ? 'Plano atual' : 'Assinar'}
+              </button>
+            </div>
           );
         })}
       </div>
