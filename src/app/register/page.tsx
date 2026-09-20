@@ -58,6 +58,7 @@ function RegisterForm() {
       return;
     }
 
+    // 1. Criar conta no Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password: senha,
@@ -69,56 +70,72 @@ function RegisterForm() {
       return;
     }
 
-    if (authData.user) {
-      const { error: tenantError } = await supabase.from('tenants').insert({
-        user_id: authData.user.id,
-        nome,
-        email,
-        telefone,
-        cpf_cnpj: cpfLimpo,
-        plano: planoUrl,
-        plano_status: 'pending',
-        ativo: false,
-        limite_mensagens_mes: 0,
-        mensagens_usadas: 0,
-        nome_agente_personalizado: 'Assistente',
-        nome_empresa: '',
-        tom_conversa: 'informal',
-        regras_extras: '',
-        saudacao_personalizada: '',
+    if (!authData.user) {
+      setErro('Erro ao criar conta. Tente novamente.');
+      setLoading(false);
+      return;
+    }
+
+    // 2. Criar tenant
+    const { error: tenantError } = await supabase.from('tenants').insert({
+      user_id: authData.user.id,
+      nome,
+      email,
+      telefone,
+      cpf_cnpj: cpfLimpo,
+      plano: planoUrl,
+      plano_status: 'pending',
+      ativo: false,
+      limite_mensagens_mes: 0,
+      mensagens_usadas: 0,
+      nome_agente_personalizado: 'Assistente',
+      nome_empresa: '',
+      tom_conversa: 'informal',
+      regras_extras: '',
+      saudacao_personalizada: '',
+    });
+
+    if (tenantError) {
+      console.error('Erro tenant:', tenantError);
+      setErro('Erro ao criar conta. Tente novamente.');
+      setLoading(false);
+      return;
+    }
+
+    // 3. Fazer login automático pra garantir sessão
+    await supabase.auth.signInWithPassword({
+      email,
+      password: senha,
+    });
+
+    // 4. Pequeno delay pra sessão propagar
+    await new Promise((r) => setTimeout(r, 1000));
+
+    // 5. Criar cobrança no Asaas
+    try {
+      const res = await fetch('/api/payments/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plano: planoUrl, billingType: 'PIX' }),
       });
 
-      if (tenantError) {
-        setErro('Erro ao criar conta. Tente novamente.');
+      const data = await res.json();
+      console.log('Resposta payments/create:', data);
+
+      if (data.invoiceUrl) {
+        window.location.href = data.invoiceUrl;
+        return;
+      } else {
+        console.error('Sem invoiceUrl:', data);
+        setErro(data.error || 'Erro ao gerar cobrança. Tente fazer login e escolher o plano.');
         setLoading(false);
         return;
       }
-
-      try {
-        await fetch('/api/email/welcome', { method: 'POST' });
-      } catch {
-        // Não bloqueia
-      }
-
-      // Criar cobrança e redirecionar pro pagamento
-      try {
-        const res = await fetch('/api/payments/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ plano: planoUrl, billingType: 'PIX' }),
-        });
-
-        const data = await res.json();
-
-        if (data.invoiceUrl) {
-          window.location.href = data.invoiceUrl;
-          return;
-        }
-      } catch {
-        // Se falhar, manda pra choose-plan
-      }
-
-      router.push('/choose-plan');
+    } catch (err) {
+      console.error('Erro fetch payments:', err);
+      setErro('Erro ao conectar com pagamento. Tente fazer login e escolher o plano.');
+      setLoading(false);
+      return;
     }
   }
 
