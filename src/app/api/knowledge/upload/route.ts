@@ -49,12 +49,12 @@ export async function POST(req: Request) {
 
     const { data: tenant } = await supabase
       .from('tenants')
-      .select('id')
+      .select('id, is_admin')
       .eq('user_id', user.id)
       .single();
 
-    if (!tenant) {
-      return NextResponse.json({ error: 'Tenant não encontrado' }, { status: 404 });
+    if (!tenant?.is_admin) {
+      return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }
 
     const formData = await req.formData();

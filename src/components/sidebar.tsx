@@ -12,7 +12,7 @@ import {
   Settings,
   LogOut,
   ShieldCheck,
-  BookOpen,
+  Database,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -27,7 +27,7 @@ const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/whatsapp', label: 'WhatsApp', icon: MessageSquare },
   { href: '/dashboard/agent', label: 'Agente', icon: Bot },
-  { href: '/dashboard/knowledge', label: 'Conhecimento', icon: BookOpen },
+  { href: '/dashboard/knowledge', label: 'Conhecimento', icon: Database },
   { href: '/dashboard/usage', label: 'Uso', icon: BarChart3 },
   { href: '/dashboard/plan', label: 'Plano', icon: CreditCard },
   { href: '/dashboard/settings', label: 'Configurações', icon: Settings },
@@ -74,7 +74,7 @@ export function Sidebar({ tenant }: SidebarProps) {
         })}
 
         {/* Menu Admin — só aparece pra admin */}
-        {tenant.is_admin && (
+                {tenant.is_admin && (
           <>
             <div className="border-t border-gray-200 my-3" />
             <Link
@@ -87,6 +87,17 @@ export function Sidebar({ tenant }: SidebarProps) {
             >
               <ShieldCheck size={18} />
               Admin
+            </Link>
+            <Link
+              href="/dashboard/admin/knowledge"
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+                pathname === '/dashboard/admin/knowledge'
+                  ? 'bg-red-50 text-red-700 font-medium'
+                  : 'text-red-600 hover:bg-red-50'
+              }`}
+            >
+              <Database size={18} />
+              Base de Conhecimento
             </Link>
           </>
         )}
