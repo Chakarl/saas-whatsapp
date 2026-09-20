@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { sendPaymentConfirmedEmail, sendPaymentOverdueEmail } from '@/lib/email';
 
 const WEBHOOK_TOKEN = process.env.ASAAS_WEBHOOK_TOKEN;
 
 export async function POST(req: Request) {
   try {
-    // Validar token do webhook
     const token = req.headers.get('asaas-access-token');
     if (WEBHOOK_TOKEN && token !== WEBHOOK_TOKEN) {
       console.warn('Webhook Asaas: token inválido');
@@ -22,7 +22,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true });
     }
 
-    // Supabase com service role (sem auth do usuário)
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -36,10 +35,9 @@ export async function POST(req: Request) {
 
     const customerId = payment.customer;
 
-    // Buscar tenant
     const { data: tenant } = await supabase
       .from('tenants')
-      .select('id, plano, limite_mensagens_mes')
+      .select('id, plano, nome, email')
       .eq('asaas_customer_id', customerId)
       .single();
 
@@ -54,7 +52,7 @@ export async function POST(req: Request) {
         .from('tenants')
         .update({
           plano_status: 'active',
-          mensagens_usadas: 0, // Reset ao pagar
+          mensagens_usadas: 0,
         })
         .eq('id', tenant.id);
 
@@ -62,6 +60,8 @@ export async function POST(req: Request) {
         .from('pagamentos')
         .update({ status: 'paid' })
         .eq('asaas_payment_id', payment.id);
+
+      await sendPaymentConfirmedEmail(tenant.email, tenant.nome, tenant.plano);
 
       console.log(`✅ Pagamento confirmado - Tenant: ${tenant.id}`);
     }
@@ -78,10 +78,12 @@ export async function POST(req: Request) {
         .update({ status: 'overdue' })
         .eq('asaas_payment_id', payment.id);
 
+      await sendPaymentOverdueEmail(tenant.email, tenant.nome);
+
       console.log(`⚠️ Pagamento vencido - Tenant: ${tenant.id}`);
     }
 
-    // Pagamento estornado ou deletado
+    // Pagamento cancelado
     if (event === 'PAYMENT_REFUNDED' || event === 'PAYMENT_DELETED') {
       await supabase
         .from('tenants')

@@ -57,6 +57,13 @@ export default function RegisterPage() {
         setLoading(false);
         return;
       }
+
+      // Enviar email de boas-vindas
+      try {
+        await fetch('/api/email/welcome', { method: 'POST' });
+      } catch {
+        // Não bloqueia o registro se o email falhar
+      }
     }
 
     router.push('/dashboard');
