@@ -4,6 +4,13 @@ import { sendPaymentConfirmedEmail, sendPaymentOverdueEmail } from '@/lib/email'
 
 const WEBHOOK_TOKEN = process.env.ASAAS_WEBHOOK_TOKEN;
 
+const limitesPorPlano: Record<string, number> = {
+  starter: 500,
+  pro: 2000,
+  business: 5000,
+  enterprise: 999999,
+};
+
 export async function POST(req: Request) {
   try {
     const token = req.headers.get('asaas-access-token');
@@ -48,10 +55,14 @@ export async function POST(req: Request) {
 
     // Pagamento confirmado
     if (event === 'PAYMENT_CONFIRMED' || event === 'PAYMENT_RECEIVED') {
+      const limite = limitesPorPlano[tenant.plano] || 500;
+
       await supabase
         .from('tenants')
         .update({
           plano_status: 'active',
+          ativo: true,
+          limite_mensagens_mes: limite,
           mensagens_usadas: 0,
         })
         .eq('id', tenant.id);
@@ -63,7 +74,7 @@ export async function POST(req: Request) {
 
       await sendPaymentConfirmedEmail(tenant.email, tenant.nome, tenant.plano);
 
-      console.log(`✅ Pagamento confirmado - Tenant: ${tenant.id}`);
+      console.log(`✅ Pagamento confirmado - Tenant: ${tenant.id} - Plano: ${tenant.plano} - Limite: ${limite}`);
     }
 
     // Pagamento vencido
@@ -83,16 +94,21 @@ export async function POST(req: Request) {
       console.log(`⚠️ Pagamento vencido - Tenant: ${tenant.id}`);
     }
 
-    // Pagamento cancelado
+    // Pagamento cancelado / reembolsado
     if (event === 'PAYMENT_REFUNDED' || event === 'PAYMENT_DELETED') {
       await supabase
         .from('tenants')
         .update({
-          plano: 'trial',
           plano_status: 'cancelled',
-          limite_mensagens_mes: 100,
+          ativo: false,
+          limite_mensagens_mes: 0,
         })
         .eq('id', tenant.id);
+
+      await supabase
+        .from('pagamentos')
+        .update({ status: 'cancelled' })
+        .eq('asaas_payment_id', payment.id);
 
       console.log(`❌ Pagamento cancelado - Tenant: ${tenant.id}`);
     }
