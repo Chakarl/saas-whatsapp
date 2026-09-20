@@ -10,13 +10,15 @@ import {
   BarChart3,
   CreditCard,
   Settings,
-  LogOut
+  LogOut,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface SidebarProps {
   tenant: {
     nome: string;
     nome_empresa: string;
+    is_admin?: boolean;
   };
 }
 
@@ -43,7 +45,7 @@ export function Sidebar({ tenant }: SidebarProps) {
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
       <div className="p-6 border-b border-gray-200">
         <h1 className="text-xl font-bold text-gray-900">
-          {tenant.nome_empresa || 'Meu SaaS'}
+          {tenant.nome_empresa || 'ZapAgent'}
         </h1>
         <p className="text-sm text-gray-500 mt-1">{tenant.nome}</p>
       </div>
@@ -68,6 +70,24 @@ export function Sidebar({ tenant }: SidebarProps) {
             </Link>
           );
         })}
+
+        {/* Menu Admin — só aparece pra admin */}
+        {tenant.is_admin && (
+          <>
+            <div className="border-t border-gray-200 my-3" />
+            <Link
+              href="/dashboard/admin"
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+                pathname === '/dashboard/admin'
+                  ? 'bg-red-50 text-red-700 font-medium'
+                  : 'text-red-600 hover:bg-red-50'
+              }`}
+            >
+              <ShieldCheck size={18} />
+              Admin
+            </Link>
+          </>
+        )}
       </nav>
 
       <div className="p-4 border-t border-gray-200">
