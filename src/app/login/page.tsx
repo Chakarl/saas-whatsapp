@@ -32,7 +32,18 @@ export default function LoginPage() {
       return;
     }
 
-    router.push('/dashboard');
+    // Verificar se já tem plano ativo
+const { data: tenant } = await supabase
+  .from('tenants')
+  .select('plano, plano_status')
+  .eq('user_id', authData.user!.id)
+  .single();
+
+if (tenant?.plano_status === 'pending' || tenant?.plano === 'pending') {
+  router.push('/choose-plan');
+} else {
+  router.push('/dashboard');
+}
   }
 
   return (
