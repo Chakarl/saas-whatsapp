@@ -1,7 +1,6 @@
 import { createServerSupabase } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import pdfParse from 'pdf-parse';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -61,7 +60,8 @@ export async function POST(req: Request) {
     if (file) {
       const buffer = Buffer.from(await file.arrayBuffer());
 
-      if (file.name.endsWith('.pdf')) {
+    if (file.name.endsWith('.pdf')) {
+        const pdfParse = (await import('pdf-parse')).default;
         const pdf = await pdfParse(buffer);
         fullText = pdf.text;
       } else {
