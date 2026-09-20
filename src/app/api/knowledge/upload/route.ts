@@ -2,7 +2,14 @@ import { createServerSupabase } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let openai: OpenAI;
+
+function getOpenAI() {
+  if (!openai) {
+    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return openai;
+}
 
 const CHUNK_SIZE = 800;
 const CHUNK_OVERLAP = 200;
@@ -24,7 +31,7 @@ function splitText(text: string): string[] {
 }
 
 async function getEmbedding(text: string): Promise<number[]> {
-  const res = await openai.embeddings.create({
+  const res = await getOpenAI().embeddings.create({
     model: 'text-embedding-3-small',
     input: text,
   });
