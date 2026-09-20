@@ -1,11 +1,18 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resend: Resend;
+
+function getResend() {
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+}
 
 const FROM_EMAIL = 'ZapAgent <onboarding@resend.dev>';
 
 export async function sendWelcomeEmail(to: string, nome: string) {
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM_EMAIL,
     to,
     subject: '🚀 Bem-vindo ao ZapAgent!',
@@ -47,7 +54,7 @@ export async function sendWelcomeEmail(to: string, nome: string) {
 }
 
 export async function sendPaymentConfirmedEmail(to: string, nome: string, plano: string) {
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM_EMAIL,
     to,
     subject: '✅ Pagamento confirmado — ZapAgent',
@@ -81,7 +88,7 @@ export async function sendPaymentConfirmedEmail(to: string, nome: string, plano:
 }
 
 export async function sendPaymentOverdueEmail(to: string, nome: string) {
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM_EMAIL,
     to,
     subject: '⚠️ Pagamento pendente — ZapAgent',
