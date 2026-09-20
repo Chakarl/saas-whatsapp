@@ -1,287 +1,243 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Upload, FileText, Trash2, Loader2, Database, Plus } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import {
+  Users, DollarSign, MessageSquare, AlertTriangle, CheckCircle, Clock,
+  Loader2, ShieldCheck,
+} from 'lucide-react';
 
-interface FileEntry {
-  name: string;
-  source: string;
-  chunks: number;
-  date: string;
-  ids: number[];
+interface Tenant {
+  id: string;
+  nome: string;
+  email: string;
+  telefone: string;
+  plano: string;
+  plano_status: string;
+  ativo: boolean;
+  mensagens_usadas: number;
+  limite_mensagens_mes: number;
+  created_at: string;
 }
 
-export default function KnowledgePage() {
-  const [files, setFiles] = useState<FileEntry[]>([]);
-  const [totalChunks, setTotalChunks] = useState(0);
-  const [text, setText] = useState('');
-  const [uploading, setUploading] = useState(false);
-  const [deleting, setDeleting] = useState<string | null>(null);
-  const [tab, setTab] = useState<'upload' | 'text'>('upload');
-  const [message, setMessage] = useState('');
-  const fileRef = useRef<HTMLInputElement>(null);
+interface Pagamento {
+  id: string;
+  tenant_id: string;
+  valor_centavos: number;
+  status: string;
+  created_at: string;
+  asaas_payment_id: string;
+}
+
+interface Stats {
+  totalTenants: number;
+  ativos: number;
+  trial: number;
+  inadimplentes: number;
+  receitaMensal: number;
+  totalMensagens: number;
+}
+
+export default function AdminPage() {
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [pagamentos, setPagamentos] = useState<Pagamento[]>([]);
+  const [erro, setErro] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadFiles();
+    loadData();
   }, []);
 
-  async function loadFiles() {
-    const res = await fetch('/api/knowledge/list');
-    const data = await res.json();
-    setFiles(data.files || []);
-    setTotalChunks(data.totalChunks || 0);
-  }
-
-  async function handleUploadFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
-    setMessage('');
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('source', 'upload');
-
-    const res = await fetch('/api/knowledge/upload', { method: 'POST', body: formData });
+  async function loadData() {
+    const res = await fetch('/api/admin/stats');
     const data = await res.json();
 
-    if (data.ok) {
-      setMessage(`✅ ${file.name} processado — ${data.chunks_saved} chunks salvos`);
-      loadFiles();
-    } else {
-      setMessage(`❌ ${data.error}`);
-    }
-
-    setUploading(false);
-    if (fileRef.current) fileRef.current.value = '';
-  }
-
-  async function handleUploadText() {
-    if (text.trim().length < 50) {
-      setMessage('❌ Texto muito curto (mínimo 50 caracteres)');
+    if (data.error) {
+      setErro(data.error);
+      setLoading(false);
       return;
     }
 
-    setUploading(true);
-    setMessage('');
-
-    const formData = new FormData();
-    formData.append('text', text);
-    formData.append('source', 'manual');
-
-    const res = await fetch('/api/knowledge/upload', { method: 'POST', body: formData });
-    const data = await res.json();
-
-    if (data.ok) {
-      setMessage(`✅ Texto processado — ${data.chunks_saved} chunks salvos`);
-      setText('');
-      loadFiles();
-    } else {
-      setMessage(`❌ ${data.error}`);
-    }
-
-    setUploading(false);
+    setStats(data.stats);
+    setTenants(data.tenants || []);
+    setPagamentos(data.pagamentos || []);
+    setLoading(false);
   }
 
-  async function handleDelete(file: FileEntry) {
-    if (!confirm(`Deletar "${file.name}" e todos os seus ${file.chunks} chunks?`)) return;
-
-    setDeleting(file.name);
-
-    const res = await fetch('/api/knowledge/delete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids: file.ids }),
-    });
-
-    const data = await res.json();
-
-    if (data.ok) {
-      setMessage(`🗑️ ${file.name} deletado — ${data.deleted} chunks removidos`);
-      loadFiles();
-    }
-
-    setDeleting(null);
+  function formatCurrency(centavos: number) {
+    return (centavos / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
 
   function formatDate(date: string) {
-    if (!date) return '—';
     return new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
+
+  function statusBadge(status: string) {
+    const map: Record<string, { label: string; dot: string; bg: string; text: string }> = {
+      active:    { label: 'Ativo',        dot: 'bg-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-700' },
+      trial:     { label: 'Trial',        dot: 'bg-blue-500',    bg: 'bg-blue-50',    text: 'text-blue-700' },
+      pending:   { label: 'Pendente',     dot: 'bg-amber-500',   bg: 'bg-amber-50',   text: 'text-amber-700' },
+      overdue:   { label: 'Inadimplente', dot: 'bg-red-500',     bg: 'bg-red-50',     text: 'text-red-700' },
+      cancelled: { label: 'Cancelado',    dot: 'bg-gray-400',    bg: 'bg-gray-100',   text: 'text-gray-600' },
+      paid:      { label: 'Pago',         dot: 'bg-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-700' },
+    };
+    const s = map[status] || { label: status, dot: 'bg-gray-400', bg: 'bg-gray-100', text: 'text-gray-600' };
+
+    return (
+      <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full ${s.bg} ${s.text}`}>
+        <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+        {s.label}
+      </span>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="animate-spin text-gray-300" size={28} />
+      </div>
+    );
+  }
+
+  if (erro) {
+    return (
+      <div className="bg-red-50 rounded-2xl p-6 max-w-md">
+        <p className="text-sm text-red-600 font-medium">{erro}</p>
+      </div>
+    );
+  }
+
+  const metricCards = [
+    { label: 'Total clientes', value: stats?.totalTenants, icon: Users, color: 'blue' },
+    { label: 'Ativos',         value: stats?.ativos,       icon: CheckCircle, color: 'emerald' },
+    { label: 'Trial',          value: stats?.trial,        icon: Clock, color: 'indigo' },
+    { label: 'Inadimplentes',  value: stats?.inadimplentes, icon: AlertTriangle, color: 'red' },
+    { label: 'MRR',            value: formatCurrency(stats?.receitaMensal || 0), icon: DollarSign, color: 'emerald' },
+    { label: 'Msgs este mês',  value: stats?.totalMensagens?.toLocaleString('pt-BR'), icon: MessageSquare, color: 'purple' },
+  ];
+
+  const colorMap: Record<string, string> = {
+    blue: 'bg-blue-50 text-blue-500',
+    emerald: 'bg-emerald-50 text-emerald-500',
+    indigo: 'bg-indigo-50 text-indigo-500',
+    red: 'bg-red-50 text-red-500',
+    purple: 'bg-purple-50 text-purple-500',
+  };
 
   return (
     <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center">
-          <Database size={18} className="text-red-500" />
+          <ShieldCheck size={18} className="text-red-500" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Base de Conhecimento</h1>
-          <p className="text-sm text-gray-400">Gerencie os documentos do agente</p>
+          <h1 className="text-2xl font-bold text-gray-900">Painel Admin</h1>
+          <p className="text-sm text-gray-400">Visão geral da plataforma</p>
         </div>
       </div>
 
-      {/* Resumo */}
-      <div className="flex items-center gap-3">
-        <span className="inline-flex items-center gap-2 text-xs font-semibold px-3.5 py-2 rounded-full bg-blue-50 text-blue-600">
-          <Database size={13} />
-          {totalChunks} chunks
-        </span>
-        <span className="inline-flex items-center gap-2 text-xs font-semibold px-3.5 py-2 rounded-full bg-gray-100 text-gray-500">
-          <FileText size={13} />
-          {files.length} arquivos
-        </span>
+      {/* Métricas */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        {metricCards.map((m) => {
+          const Icon = m.icon;
+          return (
+            <div key={m.label} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">{m.label}</span>
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${colorMap[m.color]}`}>
+                  <Icon size={15} />
+                </div>
+              </div>
+              <p className="text-xl font-bold text-gray-900">{m.value ?? '—'}</p>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Upload */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-        {/* Tabs */}
-        <div className="flex gap-1 p-2 border-b border-gray-100">
-          <button
-            onClick={() => setTab('upload')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
-              tab === 'upload'
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm shadow-blue-500/20'
-                : 'text-gray-500 hover:bg-gray-50'
-            }`}
-          >
-            <Upload size={14} />
-            Upload de arquivo
-          </button>
-          <button
-            onClick={() => setTab('text')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
-              tab === 'text'
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm shadow-blue-500/20'
-                : 'text-gray-500 hover:bg-gray-50'
-            }`}
-          >
-            <Plus size={14} />
-            Colar texto
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-5">
-          {tab === 'upload' ? (
-            <div className="space-y-4">
-              <p className="text-sm text-gray-400">
-                Aceita PDF, TXT e MD. O arquivo será dividido em chunks e salvo no banco vetorial.
-              </p>
-              <input
-                ref={fileRef}
-                type="file"
-                accept=".pdf,.txt,.md"
-                onChange={handleUploadFile}
-                className="hidden"
-              />
-              <button
-                onClick={() => fileRef.current?.click()}
-                disabled={uploading}
-                className="flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg shadow-blue-500/20 disabled:opacity-50"
-              >
-                {uploading ? <Loader2 className="animate-spin" size={16} /> : <Upload size={16} />}
-                {uploading ? 'Processando...' : 'Selecionar arquivo'}
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <p className="text-sm text-gray-400">
-                Cole o texto que deseja adicionar à base de conhecimento do agente.
-              </p>
-              <textarea
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="Cole aqui o conteúdo que o agente deve conhecer..."
-                rows={6}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 resize-none"
-              />
-              <button
-                onClick={handleUploadText}
-                disabled={uploading}
-                className="flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg shadow-blue-500/20 disabled:opacity-50"
-              >
-                {uploading ? <Loader2 className="animate-spin" size={16} /> : <Plus size={16} />}
-                {uploading ? 'Processando...' : 'Adicionar ao banco'}
-              </button>
-            </div>
-          )}
-
-          {message && (
-            <div className={`mt-4 rounded-xl p-3 text-sm font-medium ${
-              message.startsWith('✅') || message.startsWith('🗑️')
-                ? 'bg-emerald-50 text-emerald-700'
-                : 'bg-red-50 text-red-600'
-            }`}>
-              {message}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Lista de documentos */}
+      {/* Clientes */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
         <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100">
-          <FileText size={16} className="text-gray-400" />
-          <h2 className="text-sm font-semibold text-gray-900">Documentos no banco</h2>
-          <span className="ml-auto text-xs text-gray-400">{files.length} arquivos</span>
+          <Users size={16} className="text-gray-400" />
+          <h2 className="text-sm font-semibold text-gray-900">Clientes</h2>
+          <span className="ml-auto text-xs text-gray-400">{tenants.length} registros</span>
         </div>
-
-        {files.length === 0 ? (
-          <div className="px-6 py-12 text-center">
-            <Database size={32} className="text-gray-200 mx-auto mb-3" />
-            <p className="text-sm text-gray-400">Nenhum documento enviado ainda</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-[11px] font-semibold text-gray-400 uppercase tracking-widest border-b border-gray-50">
-                  <th className="px-6 py-3">Arquivo</th>
-                  <th className="px-6 py-3">Origem</th>
-                  <th className="px-6 py-3">Chunks</th>
-                  <th className="px-6 py-3">Data</th>
-                  <th className="px-6 py-3"></th>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-[11px] font-semibold text-gray-400 uppercase tracking-widest border-b border-gray-50">
+                <th className="px-6 py-3">Nome</th>
+                <th className="px-6 py-3">Email</th>
+                <th className="px-6 py-3">Plano</th>
+                <th className="px-6 py-3">Status</th>
+                <th className="px-6 py-3">Mensagens</th>
+                <th className="px-6 py-3">Cadastro</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tenants.map((t) => (
+                <tr key={t.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors">
+                  <td className="px-6 py-3.5 font-medium text-gray-900">{t.nome}</td>
+                  <td className="px-6 py-3.5 text-gray-500">{t.email}</td>
+                  <td className="px-6 py-3.5">
+                    <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 capitalize">
+                      {t.plano}
+                    </span>
+                  </td>
+                  <td className="px-6 py-3.5">{statusBadge(t.plano_status)}</td>
+                  <td className="px-6 py-3.5 text-gray-500">
+                    {t.mensagens_usadas}/{t.limite_mensagens_mes === 99999 ? '∞' : t.limite_mensagens_mes}
+                  </td>
+                  <td className="px-6 py-3.5 text-gray-400">{formatDate(t.created_at)}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {files.map((f) => (
-                  <tr key={f.name} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-3.5">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-                          <FileText size={14} className="text-blue-500" />
-                        </div>
-                        <span className="font-medium text-gray-900">{f.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-3.5 text-gray-500 capitalize">{f.source}</td>
-                    <td className="px-6 py-3.5">
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
-                        {f.chunks}
-                      </span>
-                    </td>
-                    <td className="px-6 py-3.5 text-gray-400">{formatDate(f.date)}</td>
-                    <td className="px-6 py-3.5">
-                      <button
-                        onClick={() => handleDelete(f)}
-                        disabled={deleting === f.name}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all duration-200"
-                      >
-                        {deleting === f.name
-                          ? <Loader2 className="animate-spin" size={14} />
-                          : <Trash2 size={14} />
-                        }
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Pagamentos */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100">
+          <DollarSign size={16} className="text-gray-400" />
+          <h2 className="text-sm font-semibold text-gray-900">Últimos pagamentos</h2>
+          <span className="ml-auto text-xs text-gray-400">{pagamentos.length} registros</span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-[11px] font-semibold text-gray-400 uppercase tracking-widest border-b border-gray-50">
+                <th className="px-6 py-3">Cliente</th>
+                <th className="px-6 py-3">Valor</th>
+                <th className="px-6 py-3">Status</th>
+                <th className="px-6 py-3">ID Asaas</th>
+                <th className="px-6 py-3">Data</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pagamentos.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-10 text-center text-gray-300 text-sm">
+                    Nenhum pagamento registrado
+                  </td>
+                </tr>
+              ) : (
+                pagamentos.map((p) => {
+                  const t = tenants.find((tenant) => tenant.id === p.tenant_id);
+                  return (
+                    <tr key={p.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-3.5 font-medium text-gray-900">{t?.nome || '—'}</td>
+                      <td className="px-6 py-3.5 text-gray-700 font-medium">{formatCurrency(p.valor_centavos)}</td>
+                      <td className="px-6 py-3.5">{statusBadge(p.status)}</td>
+                      <td className="px-6 py-3.5 text-gray-400 text-xs font-mono">{p.asaas_payment_id}</td>
+                      <td className="px-6 py-3.5 text-gray-400">{formatDate(p.created_at)}</td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

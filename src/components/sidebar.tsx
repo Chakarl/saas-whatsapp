@@ -28,7 +28,6 @@ const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/whatsapp', label: 'WhatsApp', icon: MessageSquare },
   { href: '/dashboard/agent', label: 'Agente', icon: Bot },
-  { href: '/dashboard/knowledge', label: 'Conhecimento', icon: Database },
   { href: '/dashboard/usage', label: 'Uso', icon: BarChart3 },
   { href: '/dashboard/plan', label: 'Plano', icon: CreditCard },
   { href: '/dashboard/settings', label: 'Configurações', icon: Settings },
