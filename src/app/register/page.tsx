@@ -1,13 +1,9 @@
 'use client';
 
-import { useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Sparkles } from 'lucide-react';
 
 function formatCPF(value: string) {
   const nums = value.replace(/\D/g, '').slice(0, 11);
@@ -24,17 +20,7 @@ function formatPhone(value: string) {
   return `(${nums.slice(0, 2)}) ${nums.slice(2, 7)}-${nums.slice(7)}`;
 }
 
-const planNames: Record<string, string> = {
-  starter: 'Starter — R$ 97/mês',
-  pro: 'Pro — R$ 197/mês',
-  business: 'Business — R$ 397/mês',
-  enterprise: 'Enterprise — R$ 797/mês',
-};
-
-function RegisterForm() {
-  const searchParams = useSearchParams();
-  const planoUrl = searchParams.get('plano') || 'pro';
-
+export default function RegisterPage() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [cpf, setCpf] = useState('');
@@ -58,7 +44,6 @@ function RegisterForm() {
       return;
     }
 
-    // 1. Criar conta no Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password: senha,
@@ -70,182 +55,141 @@ function RegisterForm() {
       return;
     }
 
-    if (!authData.user) {
-      setErro('Erro ao criar conta. Tente novamente.');
-      setLoading(false);
-      return;
-    }
-
-    // 2. Criar tenant
-    const { error: tenantError } = await supabase.from('tenants').insert({
-      user_id: authData.user.id,
-      nome,
-      email,
-      telefone,
-      cpf_cnpj: cpfLimpo,
-      plano: planoUrl,
-      plano_status: 'pending',
-      ativo: false,
-      limite_mensagens_mes: 0,
-      mensagens_usadas: 0,
-      nome_agente_personalizado: 'Assistente',
-      nome_empresa: '',
-      tom_conversa: 'informal',
-      regras_extras: '',
-      saudacao_personalizada: '',
-    });
-
-    if (tenantError) {
-      console.error('Erro tenant:', tenantError);
-      setErro('Erro ao criar conta. Tente novamente.');
-      setLoading(false);
-      return;
-    }
-
-    // 3. Fazer login automático pra garantir sessão
-    await supabase.auth.signInWithPassword({
-      email,
-      password: senha,
-    });
-
-    // 4. Pequeno delay pra sessão propagar
-    await new Promise((r) => setTimeout(r, 1000));
-
-    // 5. Criar cobrança no Asaas
-    try {
-      const res = await fetch('/api/payments/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plano: planoUrl, billingType: 'PIX' }),
+    if (authData.user) {
+      const { error: tenantError } = await supabase.from('tenants').insert({
+        user_id: authData.user.id,
+        nome,
+        email,
+        telefone,
+        cpf_cnpj: cpfLimpo,
+        plano: 'free',
+        plano_status: 'active',
+        ativo: true,
+        limite_mensagens_mes: 0,
+        mensagens_usadas: 0,
+        nome_agente_personalizado: 'Assistente',
+        nome_empresa: '',
+        tom_conversa: 'informal',
+        regras_extras: '',
+        saudacao_personalizada: '',
       });
 
-      const data = await res.json();
-      console.log('Resposta payments/create:', data);
-
-      if (data.invoiceUrl) {
-        window.location.href = data.invoiceUrl;
-        return;
-      } else {
-        console.error('Sem invoiceUrl:', data);
-        setErro(data.error || 'Erro ao gerar cobrança. Tente fazer login e escolher o plano.');
+      if (tenantError) {
+        setErro('Erro ao criar conta. Tente novamente.');
         setLoading(false);
         return;
       }
-    } catch (err) {
-      console.error('Erro fetch payments:', err);
-      setErro('Erro ao conectar com pagamento. Tente fazer login e escolher o plano.');
-      setLoading(false);
-      return;
+
+      try {
+        await fetch('/api/email/welcome', { method: 'POST' });
+      } catch {
+        // Não bloqueia
+      }
     }
+
+    router.push('/dashboard');
   }
 
+  const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200";
+  const labelClass = "block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5";
+
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="text-center">
-        <h1 className="text-xl font-bold text-blue-600">Agente de Crédito</h1>
-        <CardTitle className="text-2xl font-bold mt-2">Criar conta</CardTitle>
-        {planNames[planoUrl] && (
-          <div className="mt-3 inline-block bg-blue-50 text-blue-700 text-sm font-medium px-4 py-1.5 rounded-full">
-            Plano: {planNames[planoUrl]}
+    <div className="min-h-screen flex items-center justify-center bg-gray-50/50 px-4 py-12">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-blue-500/20 mb-4">
+            <Sparkles size={24} className="text-white" />
           </div>
-        )}
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleRegister} className="space-y-4">
-          <div>
-            <Label htmlFor="nome">Nome completo</Label>
-            <Input
-              id="nome"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              placeholder="Seu nome"
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="cpf">CPF</Label>
-            <Input
-              id="cpf"
-              value={cpf}
-              onChange={(e) => setCpf(formatCPF(e.target.value))}
-              placeholder="000.000.000-00"
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@email.com"
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="telefone">Telefone WhatsApp</Label>
-            <Input
-              id="telefone"
-              value={telefone}
-              onChange={(e) => setTelefone(formatPhone(e.target.value))}
-              placeholder="(63) 99999-9999"
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="senha">Senha</Label>
-            <Input
-              id="senha"
-              type="password"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              placeholder="••••••••"
-              minLength={6}
-              required
-            />
-          </div>
+          <h1 className="text-xl font-bold text-gray-900">Agente de Crédito</h1>
+          <p className="text-sm text-gray-400 mt-1">Crie sua conta</p>
+        </div>
 
-          {erro && (
-            <p className="text-sm text-red-500 text-center">{erro}</p>
-          )}
+        {/* Card */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <form onSubmit={handleRegister} className="space-y-5">
+            <div>
+              <label className={labelClass}>Nome completo</label>
+              <input
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                placeholder="Seu nome"
+                required
+                className={inputClass}
+              />
+            </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? (
-              <>
-                <Loader2 className="animate-spin mr-2" size={16} />
-                Criando conta...
-              </>
-            ) : (
-              'Criar conta e pagar'
+            <div>
+              <label className={labelClass}>CPF</label>
+              <input
+                value={cpf}
+                onChange={(e) => setCpf(formatCPF(e.target.value))}
+                placeholder="000.000.000-00"
+                required
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label className={labelClass}>Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu@email.com"
+                required
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label className={labelClass}>Telefone</label>
+              <input
+                value={telefone}
+                onChange={(e) => setTelefone(formatPhone(e.target.value))}
+                placeholder="(63) 99999-9999"
+                required
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label className={labelClass}>Senha</label>
+              <input
+                type="password"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+                minLength={6}
+                required
+                className={inputClass}
+              />
+            </div>
+
+            {erro && (
+              <div className="bg-red-50 rounded-xl p-3">
+                <p className="text-sm text-red-600 text-center font-medium">{erro}</p>
+              </div>
             )}
-          </Button>
-        </form>
 
-        <p className="text-sm text-center mt-4 text-gray-500">
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg shadow-blue-500/20 disabled:opacity-50"
+            >
+              {loading && <Loader2 className="animate-spin" size={16} />}
+              {loading ? 'Criando conta...' : 'Criar conta e pagar'}
+            </button>
+          </form>
+        </div>
+
+        <p className="text-sm text-center mt-6 text-gray-400">
           Já tem conta?{' '}
-          <a href="/login" className="text-blue-600 hover:underline">
+          <a href="/login" className="text-blue-600 font-medium hover:underline">
             Fazer login
           </a>
         </p>
-      </CardContent>
-    </Card>
-  );
-}
-
-export default function RegisterPage() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Suspense
-        fallback={
-          <div className="flex items-center gap-2 text-gray-400">
-            <Loader2 className="animate-spin" size={20} />
-            Carregando...
-          </div>
-        }
-      >
-        <RegisterForm />
-      </Suspense>
+      </div>
     </div>
   );
 }

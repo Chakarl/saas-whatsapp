@@ -3,9 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Check, Loader2 } from 'lucide-react';
+import { Check, Loader2, QrCode, CreditCard, Sparkles } from 'lucide-react';
 
 const plans = [
   {
@@ -56,10 +54,7 @@ export default function ChoosePlanPage() {
 
   async function loadTenant() {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      router.push('/login');
-      return;
-    }
+    if (!user) { router.push('/login'); return; }
 
     const { data } = await supabase
       .from('tenants')
@@ -67,10 +62,7 @@ export default function ChoosePlanPage() {
       .eq('user_id', user.id)
       .single();
 
-    if (!data) {
-      router.push('/register');
-      return;
-    }
+    if (!data) { router.push('/register'); return; }
 
     if (data.plano_status === 'active' && data.plano !== 'pending') {
       router.push('/dashboard');
@@ -87,10 +79,7 @@ export default function ChoosePlanPage() {
       const res = await fetch('/api/payments/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          plano: plan.id,
-          billingType: paymentMethod,
-        }),
+        body: JSON.stringify({ plano: plan.id, billingType: paymentMethod }),
       });
 
       const data = await res.json();
@@ -109,96 +98,116 @@ export default function ChoosePlanPage() {
 
   if (!tenant) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="animate-spin text-blue-600" size={32} />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50/50">
+        <Loader2 className="animate-spin text-blue-500" size={28} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-50/50 py-12 px-4">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
         <div className="text-center mb-10">
+          <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-blue-500/20 mb-4">
+            <Sparkles size={24} className="text-white" />
+          </div>
           <h1 className="text-3xl font-bold text-gray-900">Escolha seu plano</h1>
-          <p className="text-gray-500 mt-2">
-            Olá, {tenant.nome}! Escolha um plano para ativar seu Agente de Crédito.
+          <p className="text-gray-400 mt-2">
+            Olá, {tenant.nome?.split(' ')[0]}! Ative seu agente agora.
           </p>
         </div>
 
-        <div className="flex justify-center gap-2 mb-8">
+        {/* Pagamento */}
+        <div className="flex justify-center gap-3 mb-8">
           <button
             onClick={() => setPaymentMethod('PIX')}
-            className={`px-6 py-2 rounded-lg text-sm font-medium transition ${
+            className={`flex items-center gap-2.5 px-5 py-3 rounded-xl border-2 transition-all duration-200 ${
               paymentMethod === 'PIX'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-600 border hover:bg-gray-50'
+                ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
             }`}
           >
-            PIX
+            <QrCode size={18} />
+            <div className="text-left">
+              <p className="text-sm font-semibold">PIX</p>
+              <p className="text-[11px] opacity-70">Aprovação instantânea</p>
+            </div>
           </button>
+
           <button
             onClick={() => setPaymentMethod('CREDIT_CARD')}
-            className={`px-6 py-2 rounded-lg text-sm font-medium transition ${
+            className={`flex items-center gap-2.5 px-5 py-3 rounded-xl border-2 transition-all duration-200 ${
               paymentMethod === 'CREDIT_CARD'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-600 border hover:bg-gray-50'
+                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
             }`}
           >
-            Cartão de Crédito
+            <CreditCard size={18} />
+            <div className="text-left">
+              <p className="text-sm font-semibold">Cartão de Crédito</p>
+              <p className="text-[11px] opacity-70">Recorrência automática</p>
+            </div>
           </button>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        {/* Cards */}
+        <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
           {plans.map((plan) => (
-            <Card
+            <div
               key={plan.id}
-              className={`relative ${
-                plan.popular ? 'border-blue-600 border-2 shadow-lg' : ''
+              className={`relative bg-white rounded-2xl border p-6 transition-all duration-200 hover:shadow-md ${
+                plan.popular
+                  ? 'border-blue-500 border-2 shadow-sm shadow-blue-500/10'
+                  : 'border-gray-100 shadow-sm'
               }`}
             >
               {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-4 py-1 rounded-full">
-                  MAIS POPULAR
-                </div>
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow">
+                  <Sparkles size={10} /> MAIS POPULAR
+                </span>
               )}
-              <CardHeader className="text-center pb-2">
-                <CardTitle className="text-lg">{plan.name}</CardTitle>
-                <div className="mt-2">
+
+              <div className="text-center space-y-4 pt-2">
+                <h3 className="text-lg font-bold text-gray-900">{plan.name}</h3>
+
+                <div>
                   <span className="text-3xl font-bold text-gray-900">{plan.price}</span>
-                  <span className="text-gray-500 text-sm">/mês</span>
+                  <span className="text-sm text-gray-400">/mês</span>
                 </div>
-                <p className="text-sm text-gray-500 mt-1">{plan.messages} mensagens/mês</p>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3 mb-6">
+
+                <p className="text-xs text-gray-400">{plan.messages} mensagens/mês</p>
+
+                <ul className="space-y-2.5 text-sm text-gray-500">
                   {plan.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2 text-sm text-gray-600">
-                      <Check size={16} className="text-green-500 flex-shrink-0" />
+                    <li key={f} className="flex items-center gap-2 justify-center">
+                      <Check size={14} className="text-emerald-500 flex-shrink-0" />
                       {f}
                     </li>
                   ))}
                 </ul>
-                <Button
-                  className="w-full"
-                  variant={plan.popular ? 'default' : 'outline'}
+
+                <button
                   onClick={() => handleSubscribe(plan)}
                   disabled={loading !== null}
+                  className={`w-full py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                    plan.popular
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/20'
+                      : 'bg-gray-50 text-gray-700 border-2 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
+                  } disabled:opacity-50`}
                 >
                   {loading === plan.id ? (
-                    <>
-                      <Loader2 className="animate-spin mr-2" size={16} />
-                      Processando...
-                    </>
+                    <Loader2 className="animate-spin mx-auto" size={16} />
                   ) : (
                     'Assinar agora'
                   )}
-                </Button>
-              </CardContent>
-            </Card>
+                </button>
+              </div>
+            </div>
           ))}
         </div>
 
-        <p className="text-center text-xs text-gray-400 mt-8">
+        <p className="text-center text-xs text-gray-300 mt-8">
           Pagamento processado com segurança via Asaas. Cancele quando quiser.
         </p>
       </div>

@@ -3,10 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Loader2, Sparkles } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -50,55 +47,72 @@ export default function LoginPage() {
     router.push('/dashboard');
   }
 
+  const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200";
+  const labelClass = "block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5";
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <h1 className="text-xl font-bold text-blue-600">Agente de Crédito</h1>
-          <CardTitle className="text-2xl font-bold mt-2">Entrar</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50/50 px-4">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-blue-500/20 mb-4">
+            <Sparkles size={24} className="text-white" />
+          </div>
+          <h1 className="text-xl font-bold text-gray-900">Agente de Crédito</h1>
+          <p className="text-sm text-gray-400 mt-1">Entre na sua conta</p>
+        </div>
+
+        {/* Card */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
+              <label className={labelClass}>Email</label>
+              <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="seu@email.com"
                 required
+                className={inputClass}
               />
             </div>
+
             <div>
-              <Label htmlFor="senha">Senha</Label>
-              <Input
-                id="senha"
+              <label className={labelClass}>Senha</label>
+              <input
                 type="password"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 placeholder="••••••••"
                 required
+                className={inputClass}
               />
             </div>
 
             {erro && (
-              <p className="text-sm text-red-500 text-center">{erro}</p>
+              <div className="bg-red-50 rounded-xl p-3">
+                <p className="text-sm text-red-600 text-center font-medium">{erro}</p>
+              </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg shadow-blue-500/20 disabled:opacity-50"
+            >
+              {loading && <Loader2 className="animate-spin" size={16} />}
               {loading ? 'Entrando...' : 'Entrar'}
-            </Button>
+            </button>
           </form>
+        </div>
 
-          <p className="text-sm text-center mt-4 text-gray-500">
-            Não tem conta?{' '}
-            <a href="/register" className="text-blue-600 hover:underline">
-              Criar conta
-            </a>
-          </p>
-        </CardContent>
-      </Card>
+        <p className="text-sm text-center mt-6 text-gray-400">
+          Não tem conta?{' '}
+          <a href="/register" className="text-blue-600 font-medium hover:underline">
+            Criar conta
+          </a>
+        </p>
+      </div>
     </div>
   );
 }
