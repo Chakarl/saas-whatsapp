@@ -19,10 +19,10 @@ export default function LandingPage() {
               Entrar
             </Link>
             <Link
-              href="/register"
+              href="/register?plano=pro"
               className="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition"
             >
-              Criar conta grátis
+              Começar agora
             </Link>
           </div>
         </div>
@@ -31,7 +31,7 @@ export default function LandingPage() {
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-6 py-20 text-center">
         <div className="inline-block bg-blue-50 text-blue-700 text-sm font-medium px-4 py-1.5 rounded-full mb-6">
-          🚀 Seu atendente inteligente no WhatsApp
+          🚀 Seu consultor de crédito inteligente no WhatsApp
         </div>
 
         <h1 className="text-4xl md:text-6xl font-bold text-gray-900 leading-tight mb-6">
@@ -47,7 +47,7 @@ export default function LandingPage() {
 
         <div className="flex items-center justify-center gap-4">
           <Link
-            href="/register"
+            href="/register?plano=pro"
             className="bg-blue-600 text-white font-semibold px-8 py-3.5 rounded-lg text-lg hover:bg-blue-700 transition shadow-lg shadow-blue-200"
           >
             Começar agora
@@ -59,10 +59,6 @@ export default function LandingPage() {
             Ver preços
           </a>
         </div>
-
-        <p className="text-sm text-gray-400 mt-4">
-          Teste grátis por 7 dias • Sem cartão de crédito
-        </p>
       </section>
 
       {/* Benefícios */}
@@ -77,9 +73,7 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center mb-4">
                 <MessageSquare size={24} className="text-green-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                WhatsApp conectado
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">WhatsApp conectado</h3>
               <p className="text-gray-500 text-sm">
                 Conecte seu número em segundos via QR Code. Sem API oficial, sem burocracia.
               </p>
@@ -89,9 +83,7 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-4">
                 <Bot size={24} className="text-blue-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                IA Personalizada
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">IA Personalizada</h3>
               <p className="text-gray-500 text-sm">
                 Configure o nome, tom de voz, regras e conhecimento do seu agente. Ele fala como você.
               </p>
@@ -101,11 +93,9 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center mb-4">
                 <Zap size={24} className="text-purple-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Respostas instantâneas
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Respostas instantâneas</h3>
               <p className="text-gray-500 text-sm">
-                Seu Agente de Crédito responde em segundos, 24 horas por dia, 7 dias por semana. Nunca perde um cliente.
+                Seu agente responde em segundos, 24 horas por dia, 7 dias por semana.
               </p>
             </div>
 
@@ -113,9 +103,7 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-orange-50 rounded-lg flex items-center justify-center mb-4">
                 <Shield size={24} className="text-orange-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Seguro e privado
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Seguro e privado</h3>
               <p className="text-gray-500 text-sm">
                 Seus dados são criptografados. Cada conta é isolada. Ninguém acessa suas conversas.
               </p>
@@ -125,9 +113,7 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-red-50 rounded-lg flex items-center justify-center mb-4">
                 <BarChart3 size={24} className="text-red-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Painel de controle
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Painel de controle</h3>
               <p className="text-gray-500 text-sm">
                 Acompanhe mensagens enviadas, status da conexão e gerencie seu plano em tempo real.
               </p>
@@ -137,11 +123,9 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-teal-50 rounded-lg flex items-center justify-center mb-4">
                 <Headphones size={24} className="text-teal-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Suporte humano
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Suporte humano</h3>
               <p className="text-gray-500 text-sm">
-                Precisa de ajuda? Nossa equipe está disponível via WhatsApp pra te ajudar a configurar tudo.
+                Precisa de ajuda? Nossa equipe está disponível via WhatsApp pra te ajudar.
               </p>
             </div>
           </div>
@@ -160,36 +144,24 @@ export default function LandingPage() {
               <div className="w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
                 1
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Crie sua conta
-              </h3>
-              <p className="text-gray-500 text-sm">
-                Cadastre-se em menos de 1 minuto. Sem cartão de crédito.
-              </p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Escolha seu plano</h3>
+              <p className="text-gray-500 text-sm">Selecione o plano ideal e crie sua conta em menos de 1 minuto.</p>
             </div>
 
             <div className="text-center">
               <div className="w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
                 2
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Personalize seu agente
-              </h3>
-              <p className="text-gray-500 text-sm">
-                Defina o nome, tom de voz e regras de atendimento do seu assistente.
-              </p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Personalize seu agente</h3>
+              <p className="text-gray-500 text-sm">Defina o nome, tom de voz e regras de atendimento do seu assistente.</p>
             </div>
 
             <div className="text-center">
               <div className="w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
                 3
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Conecte o WhatsApp
-              </h3>
-              <p className="text-gray-500 text-sm">
-                Escaneie o QR Code e pronto — seu Agente de Crédito já está atendendo.
-              </p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Conecte o WhatsApp</h3>
+              <p className="text-gray-500 text-sm">Escaneie o QR Code e pronto — seu agente já está atendendo.</p>
             </div>
           </div>
         </div>
@@ -202,7 +174,7 @@ export default function LandingPage() {
             Planos que cabem no seu bolso
           </h2>
           <p className="text-center text-gray-500 mb-12">
-            Comece grátis e escale conforme sua demanda
+            Escolha seu plano e comece a atender hoje
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -213,24 +185,16 @@ export default function LandingPage() {
                 R$ 97<span className="text-sm font-normal text-gray-500">/mês</span>
               </p>
               <ul className="mt-6 space-y-3 text-sm text-gray-600">
-                <li className="flex items-center gap-2">
-                  <Check size={14} className="text-green-500" /> 500 mensagens/mês
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check size={14} className="text-green-500" /> Agente personalizado
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check size={14} className="text-green-500" /> WhatsApp 24h
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check size={14} className="text-green-500" /> Suporte por WhatsApp
-                </li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-green-500" /> 500 mensagens/mês</li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-green-500" /> Agente personalizado</li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-green-500" /> WhatsApp 24h</li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-green-500" /> Suporte por WhatsApp</li>
               </ul>
               <Link
-                href="/register"
+                href="/register?plano=starter"
                 className="block w-full text-center bg-gray-900 text-white font-medium py-2.5 rounded-lg mt-6 hover:bg-gray-800 transition"
               >
-                Começar
+                Escolher Starter
               </Link>
             </div>
 
@@ -244,24 +208,16 @@ export default function LandingPage() {
                 R$ 197<span className="text-sm font-normal text-gray-500">/mês</span>
               </p>
               <ul className="mt-6 space-y-3 text-sm text-gray-600">
-                <li className="flex items-center gap-2">
-                  <Check size={14} className="text-green-500" /> 2.000 mensagens/mês
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check size={14} className="text-green-500" /> Agente personalizado
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check size={14} className="text-green-500" /> WhatsApp 24h
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check size={14} className="text-green-500" /> Suporte prioritário
-                </li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-green-500" /> 2.000 mensagens/mês</li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-green-500" /> Agente personalizado</li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-green-500" /> WhatsApp 24h</li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-green-500" /> Suporte prioritário</li>
               </ul>
               <Link
-                href="/register"
+                href="/register?plano=pro"
                 className="block w-full text-center bg-blue-600 text-white font-medium py-2.5 rounded-lg mt-6 hover:bg-blue-700 transition"
               >
-                Começar
+                Escolher Pro
               </Link>
             </div>
 
@@ -272,24 +228,16 @@ export default function LandingPage() {
                 R$ 397<span className="text-sm font-normal text-gray-500">/mês</span>
               </p>
               <ul className="mt-6 space-y-3 text-sm text-gray-600">
-                <li className="flex items-center gap-2">
-                  <Check size={14} className="text-green-500" /> 5.000 mensagens/mês
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check size={14} className="text-green-500" /> Agente personalizado
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check size={14} className="text-green-500" /> WhatsApp 24h
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check size={14} className="text-green-500" /> Suporte dedicado
-                </li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-green-500" /> 5.000 mensagens/mês</li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-green-500" /> Agente personalizado</li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-green-500" /> WhatsApp 24h</li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-green-500" /> Suporte dedicado</li>
               </ul>
               <Link
-                href="/register"
+                href="/register?plano=business"
                 className="block w-full text-center bg-gray-900 text-white font-medium py-2.5 rounded-lg mt-6 hover:bg-gray-800 transition"
               >
-                Começar
+                Escolher Business
               </Link>
             </div>
 
@@ -300,24 +248,16 @@ export default function LandingPage() {
                 R$ 797<span className="text-sm font-normal text-gray-500">/mês</span>
               </p>
               <ul className="mt-6 space-y-3 text-sm text-gray-600">
-                <li className="flex items-center gap-2">
-                  <Check size={14} className="text-green-500" /> Mensagens ilimitadas
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check size={14} className="text-green-500" /> Agente personalizado
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check size={14} className="text-green-500" /> WhatsApp 24h
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check size={14} className="text-green-500" /> Suporte VIP
-                </li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-green-500" /> Mensagens ilimitadas</li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-green-500" /> Agente personalizado</li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-green-500" /> WhatsApp 24h</li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-green-500" /> Suporte VIP</li>
               </ul>
               <Link
-                href="/register"
+                href="/register?plano=enterprise"
                 className="block w-full text-center bg-gray-900 text-white font-medium py-2.5 rounded-lg mt-6 hover:bg-gray-800 transition"
               >
-                Começar
+                Escolher Enterprise
               </Link>
             </div>
           </div>
@@ -334,10 +274,10 @@ export default function LandingPage() {
             Junte-se a centenas de empresas que já automatizaram o WhatsApp com IA.
           </p>
           <Link
-            href="/register"
+            href="/register?plano=pro"
             className="inline-block bg-blue-600 text-white font-semibold px-8 py-3.5 rounded-lg text-lg hover:bg-blue-700 transition shadow-lg shadow-blue-200"
           >
-            Criar conta grátis →
+            Começar agora →
           </Link>
         </div>
       </section>

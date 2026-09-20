@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,13 @@ function formatPhone(value: string) {
   return `(${nums.slice(0, 2)}) ${nums.slice(2, 7)}-${nums.slice(7)}`;
 }
 
+const planosNomes: Record<string, string> = {
+  starter: 'Starter — R$ 97/mês',
+  pro: 'Pro — R$ 197/mês',
+  business: 'Business — R$ 397/mês',
+  enterprise: 'Enterprise — R$ 797/mês',
+};
+
 export default function RegisterPage() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
@@ -32,7 +39,11 @@ export default function RegisterPage() {
   const [erro, setErro] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+
+  const planoEscolhido = searchParams.get('plano') || 'pro';
+  const planoLabel = planosNomes[planoEscolhido] || planosNomes.pro;
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
@@ -58,39 +69,58 @@ export default function RegisterPage() {
       return;
     }
 
-    if (authData.user) {
-      const { error: tenantError } = await supabase.from('tenants').insert({
-        user_id: authData.user.id,
-        nome,
-        email,
-        telefone,
-        cpf_cnpj: cpfLimpo,
-        plano: 'pending',
-        plano_status: 'pending',
-        ativo: false,
-        limite_mensagens_mes: 0,
-        mensagens_usadas: 0,
-        nome_agente_personalizado: 'Assistente',
-        nome_empresa: '',
-        tom_conversa: 'informal',
-        regras_extras: '',
-        saudacao_personalizada: '',
-      });
-
-      if (tenantError) {
-        setErro('Erro ao criar conta. Tente novamente.');
-        setLoading(false);
-        return;
-      }
-
-      try {
-        await fetch('/api/email/welcome', { method: 'POST' });
-      } catch {
-        // Não bloqueia
-      }
+    if (!authData.user) {
+      setErro('Erro ao criar conta. Tente novamente.');
+      setLoading(false);
+      return;
     }
 
-    // Redireciona pra escolha de plano (não pro dashboard)
+    // Criar tenant com plano pending
+    const { error: tenantError } = await supabase.from('tenants').insert({
+      user_id: authData.user.id,
+      nome,
+      email,
+      telefone,
+      cpf_cnpj: cpfLimpo,
+      plano: planoEscolhido,
+      plano_status: 'pending',
+      ativo: false,
+      limite_mensagens_mes: 0,
+      mensagens_usadas: 0,
+      nome_agente_personalizado: 'Assistente',
+      nome_empresa: '',
+      tom_conversa: 'informal',
+      regras_extras: '',
+      saudacao_personalizada: '',
+    });
+
+    if (tenantError) {
+      setErro('Erro ao criar conta. Tente novamente.');
+      setLoading(false);
+      return;
+    }
+
+    // Criar cobrança direto no Asaas
+    try {
+      const res = await fetch('/api/payments/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plano: planoEscolhido,
+          billingType: 'PIX',
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.invoiceUrl) {
+        window.location.href = data.invoiceUrl;
+        return;
+      }
+    } catch {
+      // Se falhar, redireciona pra choose-plan como fallback
+    }
+
     router.push('/choose-plan');
   }
 
@@ -100,7 +130,9 @@ export default function RegisterPage() {
         <CardHeader className="text-center">
           <h1 className="text-xl font-bold text-blue-600">Agente de Crédito</h1>
           <CardTitle className="text-2xl font-bold mt-2">Criar conta</CardTitle>
-          <p className="text-sm text-gray-500 mt-1">Após o cadastro, escolha um plano para ativar</p>
+          <div className="mt-3 bg-blue-50 text-blue-700 text-sm font-medium px-4 py-2 rounded-lg">
+            Plano selecionado: {planoLabel}
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleRegister} className="space-y-4">
@@ -163,7 +195,7 @@ export default function RegisterPage() {
             )}
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Criando...' : 'Criar conta e escolher plano'}
+              {loading ? 'Processando...' : 'Criar conta e pagar'}
             </Button>
           </form>
 
@@ -171,6 +203,12 @@ export default function RegisterPage() {
             Já tem conta?{' '}
             <a href="/login" className="text-blue-600 hover:underline">
               Fazer login
+            </a>
+          </p>
+
+          <p className="text-xs text-center mt-2 text-gray-400">
+            <a href="/#precos" className="hover:underline">
+              ← Trocar de plano
             </a>
           </p>
         </CardContent>

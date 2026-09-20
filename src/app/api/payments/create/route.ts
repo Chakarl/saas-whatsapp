@@ -29,7 +29,8 @@ export async function POST(req: Request) {
     const precos: Record<string, number> = {
       starter: 97,
       pro: 197,
-      business: 497,
+      business: 397,
+      enterprise: 797,
     };
 
     const valor = precos[plano];
