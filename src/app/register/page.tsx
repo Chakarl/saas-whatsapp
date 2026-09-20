@@ -28,7 +28,7 @@ const planNames: Record<string, string> = {
   starter: 'Starter — R$ 97/mês',
   pro: 'Pro — R$ 197/mês',
   business: 'Business — R$ 397/mês',
-  enterprise: 'Enterprise — R$ 997/mês',
+  enterprise: 'Enterprise — R$ 797/mês',
 };
 
 function RegisterForm() {
