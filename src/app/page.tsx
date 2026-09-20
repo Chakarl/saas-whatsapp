@@ -9,7 +9,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Bot size={28} className="text-blue-600" />
-            <span className="text-xl font-bold text-gray-900">ZapAgent</span>
+            <span className="text-xl font-bold text-gray-900">Agente de Crédito</span>
           </div>
           <div className="flex items-center gap-4">
             <Link
@@ -40,7 +40,7 @@ export default function LandingPage() {
         </h1>
 
         <p className="text-lg text-gray-500 max-w-2xl mx-auto mb-10">
-          Crie seu agente de IA personalizado, conecte ao WhatsApp e deixe ele
+          Crie seu Agente de Crédito de IA personalizado, conecte ao WhatsApp e deixe ele
           responder, vender e atender seus clientes automaticamente — sem código,
           sem complicação.
         </p>
@@ -105,7 +105,7 @@ export default function LandingPage() {
                 Respostas instantâneas
               </h3>
               <p className="text-gray-500 text-sm">
-                Seu agente responde em segundos, 24 horas por dia, 7 dias por semana. Nunca perde um cliente.
+                Seu Agente de Crédito responde em segundos, 24 horas por dia, 7 dias por semana. Nunca perde um cliente.
               </p>
             </div>
 
@@ -188,7 +188,7 @@ export default function LandingPage() {
                 Conecte o WhatsApp
               </h3>
               <p className="text-gray-500 text-sm">
-                Escaneie o QR Code e pronto — seu agente já está atendendo.
+                Escaneie o QR Code e pronto — seu Agente de Crédito já está atendendo.
               </p>
             </div>
           </div>
@@ -347,7 +347,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between text-sm text-gray-400">
           <div className="flex items-center gap-2">
             <Bot size={18} />
-            <span>ZapAgent © 2026</span>
+            <span>Agente de Crédito © 2026</span>
           </div>
           <div className="flex gap-6">
             <a href="#" className="hover:text-gray-600">Termos</a>

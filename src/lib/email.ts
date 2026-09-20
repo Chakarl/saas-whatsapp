@@ -9,24 +9,24 @@ function getResend() {
   return resend;
 }
 
-const FROM_EMAIL = 'ZapAgent <onboarding@resend.dev>';
+const FROM_EMAIL = 'Agente de Crédito <onboarding@resend.dev>';
 
 export async function sendWelcomeEmail(to: string, nome: string) {
   return getResend().emails.send({
     from: FROM_EMAIL,
     to,
-    subject: '🚀 Bem-vindo ao ZapAgent!',
+    subject: '🚀 Bem-vindo ao Agente de Crédito!',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #2563eb; margin: 0;">ZapAgent</h1>
-          <p style="color: #6b7280; margin-top: 4px;">Seu agente inteligente no WhatsApp</p>
+          <h1 style="color: #2563eb; margin: 0;">Agente de Crédito</h1>
+          <p style="color: #6b7280; margin-top: 4px;">Seu Agente de Crédito inteligente no WhatsApp</p>
         </div>
 
         <h2 style="color: #111827;">Olá, ${nome}! 👋</h2>
 
         <p style="color: #374151; line-height: 1.6;">
-          Sua conta foi criada com sucesso! Agora você pode configurar seu agente de IA
+          Sua conta foi criada com sucesso! Agora você pode configurar seu Agente de Crédito de IA
           e conectar ao WhatsApp em poucos minutos.
         </p>
 
@@ -57,11 +57,11 @@ export async function sendPaymentConfirmedEmail(to: string, nome: string, plano:
   return getResend().emails.send({
     from: FROM_EMAIL,
     to,
-    subject: '✅ Pagamento confirmado — ZapAgent',
+    subject: '✅ Pagamento confirmado — Agente de Crédito',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #2563eb; margin: 0;">ZapAgent</h1>
+          <h1 style="color: #2563eb; margin: 0;">Agente de Crédito</h1>
         </div>
 
         <h2 style="color: #111827;">Pagamento confirmado! ✅</h2>
@@ -80,7 +80,7 @@ export async function sendPaymentConfirmedEmail(to: string, nome: string, plano:
         </div>
 
         <p style="color: #9ca3af; font-size: 13px; text-align: center; margin-top: 40px;">
-          ZapAgent — Seu agente inteligente no WhatsApp
+          Agente de Crédito — Seu consultor de crédito inteligente no WhatsApp
         </p>
       </div>
     `,
@@ -91,11 +91,11 @@ export async function sendPaymentOverdueEmail(to: string, nome: string) {
   return getResend().emails.send({
     from: FROM_EMAIL,
     to,
-    subject: '⚠️ Pagamento pendente — ZapAgent',
+    subject: '⚠️ Pagamento pendente — Agente de Crédito',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #2563eb; margin: 0;">ZapAgent</h1>
+          <h1 style="color: #2563eb; margin: 0;">Agente de Crédito</h1>
         </div>
 
         <h2 style="color: #111827;">Seu pagamento está pendente ⚠️</h2>

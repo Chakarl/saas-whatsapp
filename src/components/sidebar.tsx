@@ -47,7 +47,7 @@ export function Sidebar({ tenant }: SidebarProps) {
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
       <div className="p-6 border-b border-gray-200">
         <h1 className="text-xl font-bold text-gray-900">
-          {tenant.nome_empresa || 'ZapAgent'}
+          {tenant.nome_empresa || 'Agente de Crédito'}
         </h1>
         <p className="text-sm text-gray-500 mt-1">{tenant.nome}</p>
       </div>
