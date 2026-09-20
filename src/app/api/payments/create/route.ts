@@ -97,7 +97,7 @@ export async function POST(req: Request) {
 
     const paymentPayload = {
       customer: customerId,
-      billingType: billingType || 'PIX',
+      billingType: 'BOLETO',
       value: valor,
       dueDate: dueDate.toISOString().split('T')[0],
       description: `Agente de Crédito - Plano ${plano}`,
