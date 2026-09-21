@@ -74,6 +74,19 @@ export default function RegisterPage() {
       return;
     }
 
+    // Verificar CPF duplicado
+    const { data: cpfExiste } = await supabase
+      .from('tenants')
+      .select('id, plano_status')
+      .eq('cpf_cnpj', cpfLimpo)
+      .maybeSingle();
+
+    if (cpfExiste) {
+      setErro('Este CPF já possui uma conta cadastrada. Faça login.');
+      setLoading(false);
+      return;
+    }
+
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password: senha,

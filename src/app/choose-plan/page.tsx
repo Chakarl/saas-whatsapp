@@ -57,6 +57,11 @@ export default function ChoosePlanPage() {
   const router = useRouter();
   const supabase = createClient();
 
+  // Verifica se já usou trial
+  const jaUsouTrial =
+    tenant?.plano_status === 'expired' ||
+    tenant?.trial_expires_at !== null;
+
   useEffect(() => {
     loadTenant();
   }, []);
@@ -82,8 +87,13 @@ export default function ChoosePlanPage() {
   }
 
   async function handleSubscribe(plan: typeof plans[0]) {
-    // Plano Free — ativa direto sem pagamento
+    // Bloquear Free se já usou trial
     if (plan.free) {
+      if (jaUsouTrial) {
+        alert('Você já utilizou o período gratuito. Escolha um plano pago para continuar.');
+        return;
+      }
+
       setLoading(plan.id);
 
       const { data: { user } } = await supabase.auth.getUser();
@@ -189,7 +199,9 @@ export default function ChoosePlanPage() {
                 plan.popular
                   ? 'border-blue-500 border-2 shadow-sm shadow-blue-500/10'
                   : plan.free
-                    ? 'border-emerald-400 border-2 shadow-sm shadow-emerald-500/10'
+                    ? jaUsouTrial
+                      ? 'border-gray-200 opacity-60'
+                      : 'border-emerald-400 border-2 shadow-sm shadow-emerald-500/10'
                     : 'border-gray-100 shadow-sm'
               }`}
             >
@@ -199,9 +211,15 @@ export default function ChoosePlanPage() {
                 </span>
               )}
 
-              {plan.free && (
+              {plan.free && !jaUsouTrial && (
                 <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow">
                   <Gift size={10} /> GRÁTIS
+                </span>
+              )}
+
+              {plan.free && jaUsouTrial && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 bg-gray-400 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow">
+                  TRIAL UTILIZADO
                 </span>
               )}
 
@@ -230,25 +248,41 @@ export default function ChoosePlanPage() {
                   ))}
                 </ul>
 
-                <button
-                  onClick={() => handleSubscribe(plan)}
-                  disabled={loading !== null}
-                  className={`w-full py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                    plan.popular
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/20'
-                      : plan.free
-                        ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 shadow-lg shadow-emerald-500/20'
+                {/* Botão — lógica diferente pro Free */}
+                {plan.free ? (
+                  <button
+                    onClick={() => handleSubscribe(plan)}
+                    disabled={loading !== null || jaUsouTrial}
+                    className={`w-full py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                      jaUsouTrial
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 shadow-lg shadow-emerald-500/20'
+                    } disabled:opacity-50`}
+                  >
+                    {jaUsouTrial
+                      ? 'Trial já utilizado'
+                      : loading === plan.id
+                        ? <Loader2 className="animate-spin mx-auto" size={16} />
+                        : 'Começar grátis'
+                    }
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleSubscribe(plan)}
+                    disabled={loading !== null}
+                    className={`w-full py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                      plan.popular
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/20'
                         : 'bg-gray-50 text-gray-700 border-2 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
-                  } disabled:opacity-50`}
-                >
-                  {loading === plan.id ? (
-                    <Loader2 className="animate-spin mx-auto" size={16} />
-                  ) : plan.free ? (
-                    'Começar grátis'
-                  ) : (
-                    'Assinar agora'
-                  )}
-                </button>
+                    } disabled:opacity-50`}
+                  >
+                    {loading === plan.id ? (
+                      <Loader2 className="animate-spin mx-auto" size={16} />
+                    ) : (
+                      'Assinar agora'
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           ))}
