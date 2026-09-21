@@ -35,11 +35,42 @@ export default function LoginPage() {
     if (user) {
       const { data: tenant } = await supabase
         .from('tenants')
-        .select('plano, plano_status')
+        .select('plano, plano_status, trial_expires_at, mensagens_usadas, limite_mensagens_mes')
         .eq('user_id', user.id)
         .single();
 
-      if (tenant?.plano_status === 'pending' || tenant?.plano === 'pending') {
+      // Sem tenant → registro
+      if (!tenant) {
+        router.push('/register');
+        return;
+      }
+
+      // Plano pendente → escolher plano
+      if (tenant.plano_status === 'pending' || tenant.plano === 'pending') {
+        router.push('/choose-plan');
+        return;
+      }
+
+      // Trial expirado (dias ou mensagens)
+      if (tenant.plano === 'free' && tenant.plano_status === 'trial') {
+        const now = new Date();
+        const trialEnd = tenant.trial_expires_at ? new Date(tenant.trial_expires_at) : null;
+        const msgsEsgotadas = tenant.mensagens_usadas >= tenant.limite_mensagens_mes;
+
+        if ((trialEnd && now > trialEnd) || msgsEsgotadas) {
+          // Marca como expirado
+          await supabase.from('tenants').update({
+            plano_status: 'expired',
+            ativo: false,
+          }).eq('user_id', user.id);
+
+          router.push('/choose-plan');
+          return;
+        }
+      }
+
+      // Plano expirado → escolher plano
+      if (tenant.plano_status === 'expired') {
         router.push('/choose-plan');
         return;
       }

@@ -3,41 +3,50 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
-import { Check, Loader2, QrCode, CreditCard, Sparkles } from 'lucide-react';
+import { Check, Loader2, QrCode, CreditCard, Sparkles, Gift } from 'lucide-react';
 
 const plans = [
+  {
+    id: 'free',
+    name: 'Free',
+    price: 'R$ 0',
+    priceCents: 0,
+    messages: '50',
+    features: ['1 agente IA', '50 mensagens', '7 dias de teste', 'Sem cartão de crédito'],
+    free: true,
+  },
   {
     id: 'starter',
     name: 'Starter',
     price: 'R$ 97',
+    priceCents: 9700,
     messages: '500',
-    limit: 500,
     features: ['1 agente IA', '500 mensagens/mês', 'Suporte por WhatsApp'],
   },
   {
     id: 'pro',
     name: 'Pro',
     price: 'R$ 197',
+    priceCents: 19700,
     messages: '2.000',
-    limit: 2000,
     popular: true,
-    features: ['1 agente IA', '2.000 mensagens/mês', 'Suporte prioritário'],
+    features: ['1 agente IA', '2.000 mensagens/mês', 'Suporte prioritário', 'Base de conhecimento'],
   },
   {
     id: 'business',
     name: 'Business',
     price: 'R$ 397',
+    priceCents: 39700,
     messages: '5.000',
-    limit: 5000,
-    features: ['1 agente IA', '5.000 mensagens/mês', 'Suporte dedicado'],
+    features: ['1 agente IA', '5.000 mensagens/mês', 'Suporte dedicado', 'Base de conhecimento'],
   },
   {
     id: 'enterprise',
     name: 'Enterprise',
     price: 'R$ 797',
+    priceCents: 79700,
     messages: 'Ilimitadas',
-    limit: 999999,
-    features: ['1 agente IA', 'Mensagens ilimitadas', 'Suporte VIP'],
+    features: ['1 agente IA', 'Mensagens ilimitadas', 'Suporte VIP', 'Tudo incluso'],
   },
 ];
 
@@ -64,7 +73,7 @@ export default function ChoosePlanPage() {
 
     if (!data) { router.push('/register'); return; }
 
-    if (data.plano_status === 'active' && data.plano !== 'pending') {
+    if (data.plano_status === 'active' && data.plano !== 'pending' && data.plano !== 'free') {
       router.push('/dashboard');
       return;
     }
@@ -73,6 +82,26 @@ export default function ChoosePlanPage() {
   }
 
   async function handleSubscribe(plan: typeof plans[0]) {
+    // Plano Free — ativa direto sem pagamento
+    if (plan.free) {
+      setLoading(plan.id);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase.from('tenants').update({
+        plano: 'free',
+        plano_status: 'trial',
+        ativo: true,
+        mensagens_usadas: 0,
+        limite_mensagens_mes: 50,
+        trial_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      }).eq('user_id', user.id);
+
+      router.push('/dashboard');
+      return;
+    }
+
     setLoading(plan.id);
 
     try {
@@ -106,7 +135,7 @@ export default function ChoosePlanPage() {
 
   return (
     <div className="min-h-screen bg-gray-50/50 py-12 px-4">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-10">
           <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-blue-500/20 mb-4">
@@ -152,14 +181,16 @@ export default function ChoosePlanPage() {
         </div>
 
         {/* Cards */}
-        <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid md:grid-cols-2 xl:grid-cols-5 gap-4">
           {plans.map((plan) => (
             <div
               key={plan.id}
               className={`relative bg-white rounded-2xl border p-6 transition-all duration-200 hover:shadow-md ${
                 plan.popular
                   ? 'border-blue-500 border-2 shadow-sm shadow-blue-500/10'
-                  : 'border-gray-100 shadow-sm'
+                  : plan.free
+                    ? 'border-emerald-400 border-2 shadow-sm shadow-emerald-500/10'
+                    : 'border-gray-100 shadow-sm'
               }`}
             >
               {plan.popular && (
@@ -168,15 +199,27 @@ export default function ChoosePlanPage() {
                 </span>
               )}
 
+              {plan.free && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow">
+                  <Gift size={10} /> GRÁTIS
+                </span>
+              )}
+
               <div className="text-center space-y-4 pt-2">
                 <h3 className="text-lg font-bold text-gray-900">{plan.name}</h3>
 
                 <div>
                   <span className="text-3xl font-bold text-gray-900">{plan.price}</span>
-                  <span className="text-sm text-gray-400">/mês</span>
+                  {plan.free ? (
+                    <span className="text-sm text-gray-400">/7 dias</span>
+                  ) : (
+                    <span className="text-sm text-gray-400">/mês</span>
+                  )}
                 </div>
 
-                <p className="text-xs text-gray-400">{plan.messages} mensagens/mês</p>
+                <p className="text-xs text-gray-400">
+                  {plan.free ? '50 mensagens por 7 dias' : `${plan.messages} mensagens/mês`}
+                </p>
 
                 <ul className="space-y-2.5 text-sm text-gray-500">
                   {plan.features.map((f) => (
@@ -193,11 +236,15 @@ export default function ChoosePlanPage() {
                   className={`w-full py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200 ${
                     plan.popular
                       ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/20'
-                      : 'bg-gray-50 text-gray-700 border-2 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
+                      : plan.free
+                        ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 shadow-lg shadow-emerald-500/20'
+                        : 'bg-gray-50 text-gray-700 border-2 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
                   } disabled:opacity-50`}
                 >
                   {loading === plan.id ? (
                     <Loader2 className="animate-spin mx-auto" size={16} />
+                  ) : plan.free ? (
+                    'Começar grátis'
                   ) : (
                     'Assinar agora'
                   )}

@@ -91,11 +91,12 @@ export default function RegisterPage() {
       email,
       cpf_cnpj: cpfLimpo,
       telefone: telLimpo,
-      plano: 'pending',
-      plano_status: 'pending',
-      ativo: false,
+      plano: 'free',
+      plano_status: 'trial',
+      ativo: true,
       mensagens_usadas: 0,
-      limite_mensagens_mes: 0,
+      limite_mensagens_mes: 50,
+      trial_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     });
 
     if (tenantError) {
@@ -104,7 +105,7 @@ export default function RegisterPage() {
       return;
     }
 
-    router.push('/choose-plan');
+    router.push('/dashboard');
   }
 
   const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200";
