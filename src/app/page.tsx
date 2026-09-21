@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Check, MessageSquare, Bot, Zap, Shield, BarChart3, Headphones } from 'lucide-react';
+import { Check, MessageSquare, Bot, Zap, Shield, BarChart3, Headphones, Gift } from 'lucide-react';
 
 export default function LandingPage() {
   return (
@@ -19,10 +19,10 @@ export default function LandingPage() {
               Entrar
             </Link>
             <Link
-              href="/register?plano=pro"
+              href="/register"
               className="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition"
             >
-              Começar agora
+              Testar grátis
             </Link>
           </div>
         </div>
@@ -47,10 +47,10 @@ export default function LandingPage() {
 
         <div className="flex items-center justify-center gap-4">
           <Link
-            href="/register?plano=pro"
+            href="/register"
             className="bg-blue-600 text-white font-semibold px-8 py-3.5 rounded-lg text-lg hover:bg-blue-700 transition shadow-lg shadow-blue-200"
           >
-            Começar agora
+            Testar grátis por 7 dias
           </Link>
           <a
             href="#precos"
@@ -59,6 +59,10 @@ export default function LandingPage() {
             Ver preços
           </a>
         </div>
+
+        <p className="text-sm text-gray-400 mt-4">
+          ✅ Sem cartão de crédito · 50 mensagens grátis
+        </p>
       </section>
 
       {/* Benefícios */}
@@ -144,8 +148,8 @@ export default function LandingPage() {
               <div className="w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
                 1
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Escolha seu plano</h3>
-              <p className="text-gray-500 text-sm">Selecione o plano ideal e crie sua conta em menos de 1 minuto.</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Crie sua conta grátis</h3>
+              <p className="text-gray-500 text-sm">Cadastre-se em menos de 1 minuto. Sem cartão de crédito.</p>
             </div>
 
             <div className="text-center">
@@ -174,10 +178,33 @@ export default function LandingPage() {
             Planos que cabem no seu bolso
           </h2>
           <p className="text-center text-gray-500 mb-12">
-            Escolha seu plano e comece a atender hoje
+            Comece grátis e faça upgrade quando quiser
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            {/* Free */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-emerald-400 relative">
+              <div className="absolute -top-3 left-4 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                <Gift size={10} /> GRÁTIS
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Free</h3>
+              <p className="text-3xl font-bold mt-3">
+                R$ 0<span className="text-sm font-normal text-gray-500">/7 dias</span>
+              </p>
+              <ul className="mt-6 space-y-3 text-sm text-gray-600">
+                <li className="flex items-center gap-2"><Check size={14} className="text-green-500" /> 50 mensagens</li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-green-500" /> 7 dias de teste</li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-green-500" /> Agente personalizado</li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-green-500" /> Sem cartão de crédito</li>
+              </ul>
+              <Link
+                href="/register"
+                className="block w-full text-center bg-emerald-500 text-white font-medium py-2.5 rounded-lg mt-6 hover:bg-emerald-600 transition"
+              >
+                Começar grátis
+              </Link>
+            </div>
+
             {/* Starter */}
             <div className="bg-white rounded-xl p-6 shadow-sm border">
               <h3 className="text-lg font-semibold text-gray-900">Starter</h3>
@@ -264,36 +291,16 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA Final */}
-      <section className="py-20">
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Pronto pra transformar seu atendimento?
-          </h2>
-          <p className="text-gray-500 mb-8">
-            Junte-se a centenas de empresas que já automatizaram o WhatsApp com IA.
-          </p>
-          <Link
-            href="/register?plano=pro"
-            className="inline-block bg-blue-600 text-white font-semibold px-8 py-3.5 rounded-lg text-lg hover:bg-blue-700 transition shadow-lg shadow-blue-200"
-          >
-            Começar agora →
-          </Link>
-        </div>
-      </section>
-
       {/* Footer */}
-      <footer className="border-t py-8">
-        <div className="max-w-6xl mx-auto px-6 flex items-center justify-between text-sm text-gray-400">
-          <div className="flex items-center gap-2">
-            <Bot size={18} />
-            <span>Agente de Crédito © 2026</span>
+      <footer className="border-t py-10">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <Bot size={20} className="text-blue-600" />
+            <span className="font-bold text-gray-900">Agente de Crédito</span>
           </div>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-gray-600">Termos</a>
-            <a href="#" className="hover:text-gray-600">Privacidade</a>
-            <a href="#" className="hover:text-gray-600">Contato</a>
-          </div>
+          <p className="text-sm text-gray-400">
+            © {new Date().getFullYear()} Agente de Crédito. Todos os direitos reservados.
+          </p>
         </div>
       </footer>
     </div>
